@@ -6,17 +6,22 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.Nullable;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.simplepathstudios.pbr.ObservableCatalog;
+import com.simplepathstudios.pbr.MainActivity;
 import com.simplepathstudios.pbr.R;
+import com.simplepathstudios.pbr.Util;
 import com.simplepathstudios.pbr.adapter.CategoryAdapter;
+import com.simplepathstudios.pbr.api.model.Book;
 import com.simplepathstudios.pbr.api.model.CategoryList;
-import com.simplepathstudios.pbr.api.model.MusicCategory;
 import com.simplepathstudios.pbr.viewmodel.CategoryListViewModel;
+import com.simplepathstudios.pbr.viewmodel.SettingsViewModel;
 
 import java.util.ArrayList;
 
@@ -26,6 +31,7 @@ public class CategoryListFragment extends Fragment {
     private CategoryAdapter adapter;
     private LinearLayoutManager layoutManager;
     private CategoryListViewModel viewModel;
+    private SettingsViewModel settingsViewModel;
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
@@ -44,14 +50,43 @@ public class CategoryListFragment extends Fragment {
         viewModel.Data.observe(getViewLifecycleOwner(), new Observer<CategoryList>() {
             @Override
             public void onChanged(CategoryList categoryList) {
-                ArrayList<MusicCategory> categories = new ArrayList<MusicCategory>();
-                for(String categoryName : categoryList.list){
-                    categories.add(categoryList.lookup.get(categoryName));
-                }
-                adapter.setData(categories);
+                adapter.setData(categoryList.list);
                 adapter.notifyDataSetChanged();
             }
         });
-        viewModel.load();
+
+        this.settingsViewModel = new ViewModelProvider(MainActivity.getInstance()).get(SettingsViewModel.class);
+        settingsViewModel.Data.observe(MainActivity.getInstance(), new Observer<SettingsViewModel.Settings>() {
+            @Override
+            public void onChanged(SettingsViewModel.Settings settings) {
+                Util.log(TAG, "Definitely changed some settings");
+                if(settings.LibraryDirectory == null){
+                    Util.log(TAG, "No library found");
+                } else {
+                    Util.log(TAG, "Library directory: "+settings.LibraryDirectory.toString());
+                    if(!ObservableCatalog.getInstance().hasBooks()){
+                        Util.log(TAG, "Looping through files in "+settings.LibraryDirectory.toString());
+                        DocumentFile libraryRoot = DocumentFile.fromTreeUri(MainActivity.getInstance(), settings.LibraryDirectory);
+                        Util.log(TAG, libraryRoot.listFiles().toString());
+                        // Top level is folders (categories)
+                        for(DocumentFile category : libraryRoot.listFiles()){
+                            // Next level is files (books)
+                            Util.log(TAG, "Category: "+category.getName());
+                            ArrayList<Book> books = new ArrayList<Book>();
+                            for(DocumentFile bookFile : category.listFiles()) {
+                                Book book = new Book();
+                                book.TreeUri = bookFile.getUri();
+                                book.Name = bookFile.getName();
+                                books.add(book);
+                                Util.log(TAG, "Book: "+bookFile.getName());
+                            }
+                            ObservableCatalog.getInstance().addCategory(category.getName(), books);
+                        }
+                    }
+                    viewModel.load();
+                }
+            }
+        });
     }
 }
+

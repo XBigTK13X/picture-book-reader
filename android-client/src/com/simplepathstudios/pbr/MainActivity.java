@@ -1,7 +1,10 @@
 package com.simplepathstudios.pbr;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.StrictMode;
@@ -14,14 +17,13 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.SeekBar;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
+import androidx.documentfile.provider.DocumentFile;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -38,17 +40,21 @@ import com.simplepathstudios.pbr.api.model.MusicPlaylistListItem;
 import com.simplepathstudios.pbr.api.model.MusicQueue;
 import com.simplepathstudios.pbr.api.model.PlaylistList;
 import com.simplepathstudios.pbr.audio.AudioPlayer;
-import com.simplepathstudios.pbr.viewmodel.ObservableCastContext;
 import com.simplepathstudios.pbr.viewmodel.ObservableMusicQueue;
 import com.simplepathstudios.pbr.viewmodel.PlaylistListViewModel;
 import com.simplepathstudios.pbr.viewmodel.SettingsViewModel;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.stream.Stream;
 
 public class MainActivity extends AppCompatActivity {
 
     private final String TAG = "MainActivity";
     private final int SEEK_BAR_UPDATE_MILLISECONDS = 350;
+    public static final int OPEN_LIBRARY_DIR_CODE = 123456;
 
     private static MainActivity __instance;
 
@@ -68,22 +74,11 @@ public class MainActivity extends AppCompatActivity {
     private PlaylistList playlistListData;
 
     private Toolbar toolbar;
-    private Menu optionsMenu;
     private DrawerLayout drawerLayout;
     private ProgressBar loadingView;
-    private ImageButton previousButton;
-    private ImageButton playButton;
-    private ImageButton pauseButton;
-    private ImageButton nextButton;
-    private SeekBar seekBar;
-    private TextView seekTime;
-    private TextView audioControlsNowPlaying;
-    private NavDestination currentLocation;
-    private double lastVolume;
     private ImageButton simpleUiMusicButton;
-
     private AudioPlayer audioPlayer;
-    private Handler seekHandler;
+    private NavDestination currentLocation;
 
     public void setActionBarTitle(String title) {
         getSupportActionBar().setTitle(title);
@@ -102,9 +97,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onActivityResult(int requestCode, int resultCode,
+                                 Intent resultData) {
+        super.onActivityResult(requestCode, resultCode, resultData);
+        if (requestCode == OPEN_LIBRARY_DIR_CODE && resultCode == Activity.RESULT_OK) {
+            if (resultData != null) {
+                Uri uri = resultData.getData();
+                settingsViewModel.setLibraryDirectory(uri);
+            }
+        }
+    }
+
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main_activity);
+
         __instance = this;
 
 
@@ -112,14 +120,20 @@ public class MainActivity extends AppCompatActivity {
 
         this.settingsViewModel = new ViewModelProvider(this).get(SettingsViewModel.class);
         this.settingsViewModel.initialize(this.getSharedPreferences("PBR", Context.MODE_PRIVATE));
-        settingsViewModel.Data.observe(this, new Observer<SettingsViewModel.Settings>() {
+
+        setContentView(R.layout.main_activity);
+
+        SettingsViewModel.Settings settings = settingsViewModel.Data.getValue();
+        settingsViewModel.Data.observe(MainActivity.getInstance(), new Observer<SettingsViewModel.Settings>() {
             @Override
             public void onChanged(SettingsViewModel.Settings settings) {
-                ApiClient.retarget(settings.ServerUrl, settings.Username);
-                AudioPlayer.getInstance().setVolume(settings.InternalMediaVolume);
+                Util.log(TAG, "Definitely changed some settings");
+                if(settings.LibraryDirectory == null){
+                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                    startActivityForResult(intent, MainActivity.OPEN_LIBRARY_DIR_CODE);
+                }
             }
         });
-        SettingsViewModel.Settings settings = settingsViewModel.Data.getValue();
         if(PBRSettings.DebugResourceLeaks) {
             StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder(StrictMode.getVmPolicy())
                     .detectLeakedClosableObjects()
@@ -142,6 +156,7 @@ public class MainActivity extends AppCompatActivity {
         navigationView = findViewById(R.id.nav_view);
         navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
+                R.id.category_list_fragment,
                 R.id.queue_fragment,
                 R.id.album_list_fragment,
                 R.id.artist_list_fragment,
@@ -200,121 +215,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        playButton = findViewById(R.id.play_button);
-        playButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (queue != null && queue.getSize() > 0) {
-                    if (queue.currentIndex == null) {
-                        observableMusicQueue.setCurrentIndex(0);
-                    }
-                    AudioPlayer.getInstance().play();
-                }
-            }
-        });
-        pauseButton = findViewById(R.id.pause_button);
-        pauseButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AudioPlayer.getInstance().pause();
-            }
-        });
-        nextButton = findViewById(R.id.next_button);
-        nextButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AudioPlayer.getInstance().next();
-            }
-        });
-        previousButton = findViewById(R.id.previous_button);
-        previousButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AudioPlayer.getInstance().previous();
-            }
-        });
-
-        audioControlsNowPlaying = findViewById(R.id.audio_controls_now_playing);
-        audioControlsNowPlaying.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (currentLocation.getId() == R.id.now_playing_fragment) {
-                    Bundle bundle = new Bundle();
-                    bundle.putInt("ScrollToItemIndex", queue.currentIndex);
-                    navController.navigate(R.id.queue_fragment, bundle);
-                } else {
-                    navController.navigate(R.id.now_playing_fragment);
-                }
-            }
-        });
-
-        seekBar = findViewById(R.id.seek_bar);
-        seekTime = findViewById(R.id.seek_time);
-
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
-
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (AudioPlayer.getInstance() != null && fromUser) {
-                    if(fromUser){
-                        AudioPlayer.getInstance().seekTo(progress);
-                    }
-                }
-            }
-        });
-
-        seekHandler = new Handler();
-        this.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (queue != null) {
-                    if (AudioPlayer.getInstance().isPlaying()) {
-                        playButton.setVisibility(View.GONE);
-                        pauseButton.setVisibility(View.VISIBLE);
-                    } else {
-                        playButton.setVisibility(View.VISIBLE);
-                        pauseButton.setVisibility(View.GONE);
-                    }
-                    if (queue.playerState == MusicQueue.PlayerState.PLAYING) {
-                        Integer position = AudioPlayer.getInstance().getSongPosition();
-                        Integer duration = AudioPlayer.getInstance().getSongDuration();
-                        if (position != null && duration != null) {
-                            seekBar.setMin(0);
-                            seekBar.setMax(duration);
-                            seekBar.setProgress(position);
-                            seekBar.setVisibility(View.VISIBLE);
-                            seekTime.setText(String.format("%s / %s", Util.millisecondsToTimestamp(position), Util.millisecondsToTimestamp(duration)));
-                        } else {
-                            seekBar.setVisibility(View.INVISIBLE);
-                            seekTime.setText("Loading...");
-                        }
-                    }
-                    if (queue.playerState == MusicQueue.PlayerState.PLAYING || queue.playerState == MusicQueue.PlayerState.PAUSED) {
-                        seekTime.setVisibility(View.VISIBLE);
-                        if (audioControlsNowPlaying.getVisibility() == View.INVISIBLE) {
-                            audioControlsNowPlaying.setVisibility(View.VISIBLE);
-                        }
-                        String oneLineMeta = queue.getCurrent().getOneLineMetadata();
-                        if (!oneLineMeta.equalsIgnoreCase(audioControlsNowPlaying.getText().toString())) {
-                            audioControlsNowPlaying.setText(oneLineMeta);
-                        }
-                        if (!audioControlsNowPlaying.isSelected()) {
-                            audioControlsNowPlaying.setSelected(true);
-                            audioControlsNowPlaying.setEllipsize(TextUtils.TruncateAt.MARQUEE);
-                        }
-                    }
-                }
-                seekHandler.postDelayed(this, SEEK_BAR_UPDATE_MILLISECONDS);
-            }
-        });
-
         simpleUiMusicButton = findViewById(R.id.simple_ui_music_button);
         simpleUiMusicButton.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -340,30 +240,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        ObservableMusicQueue.getInstance().observe(new Observer<MusicQueue>() {
-            @Override
-            public void onChanged(MusicQueue musicQueue) {
-                queue = musicQueue;
-                if (settings.EnableSimpleUIMode) {
-
-                } else {
-                    if (queue.playerState == MusicQueue.PlayerState.PLAYING) {
-                        playButton.setVisibility(View.GONE);
-                        pauseButton.setVisibility(View.VISIBLE);
-                    } else if (queue.playerState == MusicQueue.PlayerState.PAUSED) {
-                        playButton.setVisibility(View.VISIBLE);
-                        pauseButton.setVisibility(View.GONE);
-                    } else if (queue.playerState == MusicQueue.PlayerState.IDLE) {
-                        playButton.setVisibility(View.VISIBLE);
-                        pauseButton.setVisibility(View.GONE);
-                        seekBar.setVisibility(View.INVISIBLE);
-                        seekTime.setVisibility(View.INVISIBLE);
-                        audioControlsNowPlaying.setVisibility(View.INVISIBLE);
-                    }
-                }
-            }
-        });
-
         playlistListViewModel = new ViewModelProvider(MainActivity.getInstance()).get(PlaylistListViewModel.class);
         playlistListViewModel.Data.observe(MainActivity.getInstance(), new Observer<PlaylistList>() {
             @Override
@@ -371,16 +247,11 @@ public class MainActivity extends AppCompatActivity {
                 playlistListData = playlistList;
             }
         });
-
-        playlistListViewModel.load();
-        observableMusicQueue.load();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
-
-        this.optionsMenu = menu;
         getMenuInflater().inflate(R.menu.menu, menu);
         // If this happens before cast context discovery is complete, then the menu button won't appear
         CastButtonFactory.setUpMediaRouteButton(this, menu, R.id.media_route_menu_item);

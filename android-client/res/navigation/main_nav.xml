@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main_nav"
-    app:startDestination="@id/queue_fragment">
+    app:startDestination="@id/category_list_fragment">
 
     <fragment
         android:id="@+id/queue_fragment"
@@ -52,6 +52,10 @@
         android:id="@+id/album_view_fragment"
         android:name="com.simplepathstudios.pbr.fragment.AlbumViewFragment"
         tools:layout="@layout/album_view_fragment" />
+    <fragment
+        android:id="@+id/category_view_fragment"
+        android:name="com.simplepathstudios.pbr.fragment.CategoryViewFragment"
+        tools:layout="@layout/category_view_fragment" />
     <fragment
         android:id="@+id/album_list_fragment"
         android:name="com.simplepathstudios.pbr.fragment.AlbumListFragment"

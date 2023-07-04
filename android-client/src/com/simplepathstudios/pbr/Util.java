@@ -78,7 +78,7 @@ public class Util {
                 return;
             }
             String timestamp = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date());
-            String logEntry = String.format("%s - %s - %s : %s",System.currentTimeMillis(), timestamp,tag,message);
+            String logEntry = String.format("[PBR] - %s - %s - %s : %s",System.currentTimeMillis(), timestamp,tag,message);
             Log.d(tag, logEntry);
             if (ApiClient.getInstance().getCurrentUser() != null) {
                 ApiClient.getInstance().log(logEntry).enqueue(new Callback() {

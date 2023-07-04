@@ -15,4 +15,6 @@ public class PBRSettings {
     public static int QueuePopulatedDelayMilliseconds = 200;
     public static float SongDurationMinimumSeconds = 10f;
     public static boolean DebugResourceLeaks = false;
+
+    public static Uri LibraryDirectory = null;
 }

@@ -46,11 +46,6 @@
 
         </RelativeLayout>
 
-        <include
-            layout="@layout/audio_player_controls"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
     </LinearLayout>
 
     <LinearLayout

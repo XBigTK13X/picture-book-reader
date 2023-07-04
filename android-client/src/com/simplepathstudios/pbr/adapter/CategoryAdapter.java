@@ -12,17 +12,18 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.simplepathstudios.pbr.MainActivity;
 import com.simplepathstudios.pbr.R;
+import com.simplepathstudios.pbr.api.model.BookCategory;
 import com.simplepathstudios.pbr.api.model.MusicCategory;
 
 import java.util.ArrayList;
 
 public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHolder> {
-    private ArrayList<MusicCategory> data;
+    private ArrayList<BookCategory> data;
     public CategoryAdapter(){
         this.data = null;
     }
 
-    public void setData(ArrayList<MusicCategory> data){
+    public void setData(ArrayList<BookCategory> data){
         this.data = data;
     }
 
@@ -51,7 +52,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         public final TextView textView;
-        public MusicCategory category;
+        public BookCategory category;
 
         public ViewHolder(TextView textView) {
             super(textView);
@@ -63,13 +64,8 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
         public void onClick(View v) {
             NavController navController = Navigation.findNavController(MainActivity.getInstance(), R.id.nav_host_fragment);
             Bundle bundle = new Bundle();
-            if(category.Kind.equalsIgnoreCase("ArtistView")){
-                bundle.putString("Artist", category.Name);
-                navController.navigate(R.id.artist_view_fragment, bundle);
-            } else {
-                bundle.putString("Category", category.Name);
-                navController.navigate(R.id.artist_list_fragment, bundle);
-            }
+            bundle.putString("CategoryName", category.Name);
+            navController.navigate(R.id.category_view_fragment, bundle);
         }
     }
 }

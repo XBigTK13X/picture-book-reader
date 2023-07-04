@@ -29,20 +29,14 @@ public class OptionsFragment extends Fragment {
     private static final String TAG = "OptionsFragment";
     private SettingsViewModel settingsViewModel;
     private ServerInfoViewModel serverInfoViewModel;
-    private RadioButton prodRadio;
-    private RadioButton devRadio;
-    private RadioGroup serverUrlRadios;
     private TextView versionText;
     private TextView errorText;
     private TextView userText;
     private Button debugLogToggle;
     private TextView debugLogStatus;
-    private TextView volumeText;
-    private SeekBar volumeSlider;
-    private String lastServer;
-    private Button enableSimpleUIModeButton;
     private Button updatePBRButton;
-
+    private Button clearLibraryButton;
+    private TextView libraryText;
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
@@ -53,25 +47,6 @@ public class OptionsFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        volumeText = view.findViewById(R.id.volume_text);
-        volumeSlider = view.findViewById(R.id.volume_slider);
-        prodRadio = view.findViewById(R.id.prod_server_radio);
-        devRadio = view.findViewById(R.id.dev_server_radio);
-
-        volumeSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if(fromUser){
-                    Log.d(TAG, "Internal Volume Progress "+((double)progress)/100.0);
-                    settingsViewModel.setInternalMediaVolume(((double)progress)/100.0);
-                }
-            }
-        });
-
         updatePBRButton = view.findViewById(R.id.download_update_button);
         updatePBRButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -81,25 +56,20 @@ public class OptionsFragment extends Fragment {
             }
         });
 
+        libraryText = view.findViewById(R.id.library_text);
+
         settingsViewModel = new ViewModelProvider(getActivity()).get(SettingsViewModel.class);
         settingsViewModel.Data.observe(getViewLifecycleOwner(), new Observer<SettingsViewModel.Settings>() {
             @Override
             public void onChanged(SettingsViewModel.Settings settings) {
-                if(lastServer == null || !lastServer.equalsIgnoreCase(settings.ServerUrl)) {
-                    ObservableMusicQueue.getInstance().load();
-                    if (settings.ServerUrl.equalsIgnoreCase(PBRSettings.DevServerUrl)) {
-                        prodRadio.setChecked(false);
-                        devRadio.setChecked(true);
-                    } else if (settings.ServerUrl != null) {
-                        prodRadio.setChecked(true);
-                        devRadio.setChecked(false);
-                    }
-                    lastServer = settings.ServerUrl;
-                }
-                volumeSlider.setProgress((int)(100.0 * settings.InternalMediaVolume));
-                volumeText.setText("Adjust music volume below. Currently at " + (int)(100.0 * settings.InternalMediaVolume) + "%");
                 PBRSettings.EnableDebugLog = settings.EnableDebugLog;
                 debugLogStatus.setText("Debug logging is "+(PBRSettings.EnableDebugLog ? "enabled" : "disabled"));
+                if(settings.LibraryDirectory != null){
+                    libraryText.setText(settings.LibraryDirectory.toString());
+                } else {
+                    libraryText.setText("No library chosen");
+                }
+
             }
         });
 
@@ -127,6 +97,14 @@ public class OptionsFragment extends Fragment {
             }
         });
 
+        clearLibraryButton = view.findViewById(R.id.clear_library_button);
+        clearLibraryButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                settingsViewModel.setLibraryDirectory(null);
+            }
+        });
+
         String versionInfo = String.format("Client Version: %s\nServer Version: %s\nClient Built: %s\nServer Built: %s",PBRSettings.ClientVersion, "???",PBRSettings.BuildDate,"???");
         versionText = view.findViewById(R.id.version_text);
         versionText.setText(versionInfo);
@@ -137,28 +115,6 @@ public class OptionsFragment extends Fragment {
 
         serverInfoViewModel.load();
 
-        Button logoutButton = view.findViewById(R.id.logout_button);
-        logoutButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                settingsViewModel.setUsername(null);
-            }
-        });
-
-        serverUrlRadios = (RadioGroup) view.findViewById(R.id.server_url_radios);
-        serverUrlRadios.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener()
-        {
-            @Override
-            public void onCheckedChanged(RadioGroup group, int checkedId) {
-                if(checkedId == R.id.dev_server_radio){
-                    settingsViewModel.setServerUrl(PBRSettings.DevServerUrl);
-                }
-                if(checkedId == R.id.prod_server_radio){
-                    settingsViewModel.setServerUrl(PBRSettings.ProdServerUrl);
-                }
-            }
-        });
-
         debugLogStatus = view.findViewById(R.id.debug_log_status);
         debugLogStatus.setText("Debug logging is "+(PBRSettings.EnableDebugLog ? "enabled" : "disabled"));
 
@@ -167,14 +123,6 @@ public class OptionsFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 settingsViewModel.setDebugLog(!PBRSettings.EnableDebugLog);
-            }
-        });
-
-        enableSimpleUIModeButton = view.findViewById(R.id.enable_simple_ui_mode_button);
-        enableSimpleUIModeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                settingsViewModel.setSimpleUIMode(true);
             }
         });
     }
