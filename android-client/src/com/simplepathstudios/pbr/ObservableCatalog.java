@@ -1,11 +1,8 @@
 package com.simplepathstudios.pbr;
 
-import android.app.VoiceInteractor;
-import android.content.ContentResolver;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
-import androidx.documentfile.provider.DocumentFile;
 import androidx.lifecycle.Observer;
 
 import com.google.android.gms.common.util.IOUtils;
@@ -14,20 +11,17 @@ import com.simplepathstudios.pbr.api.model.BookCategory;
 import com.simplepathstudios.pbr.api.model.BookView;
 import com.simplepathstudios.pbr.api.model.CategoryList;
 import com.simplepathstudios.pbr.api.model.CategoryView;
-import com.simplepathstudios.pbr.api.model.MusicFile;
-import com.simplepathstudios.pbr.api.model.MusicQueue;
-import com.squareup.picasso.Picasso;
+
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipFile;
+import org.apache.commons.compress.utils.SeekableInMemoryByteChannel;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-import java.util.zip.ZipInputStream;
 
 public class ObservableCatalog {
    public final String TAG = "ObservableCatalog";
@@ -96,10 +90,14 @@ public class ObservableCatalog {
       BookView bookView = new BookView();
       bookView.Name = book.Name;
       bookView.TreeUi = book.TreeUri;
+      //TODO Add some progress bar or something when opening the book
       try {
-         ZipInputStream zipStream = new ZipInputStream(MainActivity.getInstance().getContentResolver().openInputStream(book.TreeUri));
-         while(zipStream.available() == 1){
-            ZipEntry entry = zipStream.getNextEntry();
+         InputStream safInputStream = MainActivity.getInstance().getContentResolver().openInputStream(book.TreeUri);
+         byte[] zipBytes = IOUtils.toByteArray(safInputStream);
+         ZipFile bookArchive = new ZipFile(new SeekableInMemoryByteChannel(zipBytes));
+         Enumeration<ZipArchiveEntry> entries = bookArchive.getEntries();
+         while(entries.hasMoreElements()){
+            ZipArchiveEntry entry = entries.nextElement();
             if(entry.isDirectory()){
                continue;
             }
@@ -109,6 +107,7 @@ public class ObservableCatalog {
                bookView.Info.put(entryName, null);
             }
             else {
+               InputStream zipStream = bookArchive.getInputStream(entry);
                byte[] rawImage = new byte[(int) entry.getSize()];
                int ii = 0;
                while (ii < rawImage.length) {

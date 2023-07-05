@@ -49,7 +49,9 @@ public class BookViewFragment extends Fragment {
          @Override
          public void onChanged(BookView bookView) {
             book = bookView;
-            currentPage.setImageBitmap(book.Pages.get(book.PageIds.get(0)));
+            book.NextPage();
+            currentPage.setImageBitmap(book.GetCurrentPage());
+            progress.setText("(" + (book.CurrentPageIndex + 1) + " / " + book.GetPageCount() + ")");
          }
       });
       bookViewModel.load(categoryName, bookName);
