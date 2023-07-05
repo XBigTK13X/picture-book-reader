@@ -11,10 +11,12 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.simplepathstudios.pbr.MainActivity;
+import com.simplepathstudios.pbr.ObservableCatalog;
 import com.simplepathstudios.pbr.R;
 import com.simplepathstudios.pbr.api.model.BookCategory;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 
 public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHolder> {
     private ArrayList<BookCategory> data;
@@ -23,6 +25,12 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
     }
 
     public void setData(ArrayList<BookCategory> data){
+        data.sort(new Comparator<BookCategory>() {
+            @Override
+            public int compare(BookCategory o1, BookCategory o2) {
+                return o1.Name.toLowerCase().compareTo(o2.Name.toLowerCase());
+            }
+        });
         this.data = data;
     }
 
@@ -37,7 +45,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
     public void onBindViewHolder(CategoryAdapter.ViewHolder holder, int position) {
         holder.category = this.data.get(position);
         TextView view = holder.textView;
-        view.setText(holder.category.Name);
+        view.setText(holder.category.Name+"\n("+ ObservableCatalog.getInstance().getBooks(holder.category.Name).Books.size()+")");
     }
 
     @Override

@@ -56,7 +56,6 @@ public class MainActivity extends AppCompatActivity {
     private DrawerLayout drawerLayout;
     private ProgressBar loadingView;
 
-    private BookView book;
     private BookViewViewModel bookViewModel;
 
     public void setActionBarTitle(String title) {
@@ -98,7 +97,6 @@ public class MainActivity extends AppCompatActivity {
         settingsViewModel.Data.observe(MainActivity.getInstance(), new Observer<SettingsViewModel.Settings>() {
             @Override
             public void onChanged(SettingsViewModel.Settings settings) {
-                Util.log(TAG, "Definitely changed some settings");
                 if(settings.LibraryDirectory == null){
                     Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
                     startActivityForResult(intent, MainActivity.OPEN_LIBRARY_DIR_CODE);

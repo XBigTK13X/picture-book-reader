@@ -19,13 +19,14 @@ public class SettingsViewModel extends ViewModel {
     public void initialize(SharedPreferences preferences){
         Settings settings = new Settings();
         settings.Preferences = preferences;
-        settings.EnableDebugLog = settings.Preferences.getBoolean("EnableDebugLog", false);
+        settings.EnableDebugLog = true;//settings.Preferences.getBoolean("EnableDebugLog", false);
         settings.LibraryDirectory = null;
         String uriString = settings.Preferences.getString("LibraryDirectory", null);
         if(uriString != null){
             settings.LibraryDirectory = Uri.parse(uriString);
         }
         PBRSettings.EnableDebugLog = settings.EnableDebugLog;
+        PBRSettings.LibraryDirectory = settings.LibraryDirectory;
         Data.setValue(settings);
     }
 

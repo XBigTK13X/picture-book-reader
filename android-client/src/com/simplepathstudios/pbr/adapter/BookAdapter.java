@@ -1,16 +1,19 @@
 package com.simplepathstudios.pbr.adapter;
 
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.simplepathstudios.pbr.MainActivity;
+import com.simplepathstudios.pbr.ObservableCatalog;
 import com.simplepathstudios.pbr.R;
 import com.simplepathstudios.pbr.api.model.Book;
 
@@ -28,16 +31,16 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.ViewHolder> {
 
    @Override
    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-      TextView v = (TextView) LayoutInflater.from(parent.getContext())
-              .inflate(R.layout.small_list_item, parent, false);
+      ImageView v = (ImageView) LayoutInflater.from(parent.getContext())
+              .inflate(R.layout.image_list_item, parent, false);
       return new ViewHolder(v);
    }
 
    @Override
    public void onBindViewHolder(BookAdapter.ViewHolder holder, int position) {
       holder.book = this.data.get(position);
-      TextView view = holder.textView;
-      view.setText(holder.book.Name);
+      Bitmap thumbnail = ObservableCatalog.getInstance().getBookThumbnail(holder.book.CategoryName, holder.book.Name);
+      holder.image.setImageBitmap(thumbnail);
    }
 
    @Override
@@ -50,13 +53,13 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.ViewHolder> {
 
    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
-      public final TextView textView;
+      public final ImageView image;
       public Book book;
 
-      public ViewHolder(TextView textView) {
-         super(textView);
-         this.textView = textView;
-         textView.setOnClickListener(this);
+      public ViewHolder(ImageView view) {
+         super(view);
+         image = view;
+         image.setOnClickListener(this);
       }
 
       @Override

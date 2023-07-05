@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -20,6 +21,7 @@ import com.simplepathstudios.pbr.viewmodel.CategoryViewViewModel;
 
 public class CategoryViewFragment extends Fragment {
    private final String TAG = "CategoryViewFragment";
+   private final int COLUMNS = 8;
 
    private CategoryViewViewModel categoryViewModel;
    private String categoryName;
@@ -45,7 +47,7 @@ public class CategoryViewFragment extends Fragment {
       listElement = view.findViewById(R.id.category_book_list);
       adapter = new BookAdapter();
       listElement.setAdapter(adapter);
-      layoutManager = new LinearLayoutManager(getActivity());
+      layoutManager = new GridLayoutManager(getActivity(), COLUMNS);
       listElement.setLayoutManager(layoutManager);
       categoryViewModel = new ViewModelProvider(this).get(CategoryViewViewModel.class);
       categoryViewModel.Data.observe(getViewLifecycleOwner(), new Observer<CategoryView>() {

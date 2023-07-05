@@ -1,11 +1,13 @@
 package com.simplepathstudios.pbr;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 
+import androidx.documentfile.provider.DocumentFile;
 import androidx.lifecycle.Observer;
 
-import com.google.android.gms.common.util.IOUtils;
 import com.simplepathstudios.pbr.api.model.Book;
 import com.simplepathstudios.pbr.api.model.BookCategory;
 import com.simplepathstudios.pbr.api.model.BookView;
@@ -14,11 +16,16 @@ import com.simplepathstudios.pbr.api.model.CategoryView;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
+import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.zip.ZipEntry;
@@ -56,11 +63,96 @@ public class ObservableCatalog {
       }
    }
 
+   public void importLibrary(){
+      DocumentFile libraryRoot = DocumentFile.fromTreeUri(MainActivity.getInstance(), PBRSettings.LibraryDirectory);
+      Util.log(TAG, libraryRoot.listFiles().toString());
+      // Top level is folders (categories)
+      for(DocumentFile category : libraryRoot.listFiles()){
+         // Next level is files (books)
+         ArrayList<Book> books = new ArrayList<Book>();
+         for(DocumentFile bookFile : category.listFiles()) {
+            Book book = new Book();
+            book.TreeUri = bookFile.getUri();
+            book.Name = bookFile.getName();
+            book.CategoryName = category.getName();
+            books.add(book);
+            generateThumbnail(getBookKey(book.CategoryName, book.Name), book.TreeUri);
+         }
+         ObservableCatalog.getInstance().addCategory(category.getName(), books);
+      }
+   }
+
+   public Bitmap getBookThumbnail(String category, String book) {
+      try{
+         FileInputStream thumbnailStream = MainActivity.getInstance().openFileInput(getThumbnailPath(getBookKey(category, book)));
+         Bitmap bitmap = BitmapFactory.decodeStream(thumbnailStream);
+         thumbnailStream.close();
+         return bitmap;
+      } catch(IOException e){
+         Util.error(TAG, e);
+      }
+      return null;
+   }
+
+   private String getThumbnailPath(String bookKey){
+      return "thumbnails." + bookKey + ".jpeg";
+   }
+
+   public void generateThumbnail(String bookKey, Uri archiveUri){
+      File file = MainActivity.getInstance().getFileStreamPath(getThumbnailPath(bookKey));
+      if(file != null && file.exists()) {
+         return;
+      }
+      try {
+         Util.log(TAG,"Parse book " + archiveUri);
+         InputStream safInputStream = MainActivity.getInstance().getContentResolver().openInputStream(archiveUri);
+         byte[] zipBytes = IOUtils.toByteArray(safInputStream);
+         SeekableInMemoryByteChannel byteChannel = new SeekableInMemoryByteChannel(zipBytes);
+         ZipFile bookArchive = new ZipFile(byteChannel);
+         Enumeration<ZipArchiveEntry> entries = bookArchive.getEntries();
+         while (entries.hasMoreElements()) {
+            ZipArchiveEntry entry = entries.nextElement();
+            if (entry.isDirectory()) {
+               continue;
+            }
+            String entryName = entry.getName();
+            if (!entryName.endsWith(".xml") && !entryName.endsWith(".txt")) {
+               InputStream zipStream = bookArchive.getInputStream(entry);
+               byte[] rawImage = new byte[(int) entry.getSize()];
+               int ii = 0;
+               while (ii < rawImage.length) {
+                  ii += zipStream.read(rawImage, ii, rawImage.length - ii);
+               }
+               Bitmap bitmap = BitmapFactory.decodeByteArray(rawImage, 0, rawImage.length);
+               Bitmap thumbnail = Bitmap.createScaledBitmap(bitmap,500,500,true);
+               FileOutputStream thumbnailStream = MainActivity.getInstance().openFileOutput(getThumbnailPath(bookKey), Context.MODE_PRIVATE);
+               thumbnail.compress(Bitmap.CompressFormat.JPEG, 95, thumbnailStream);
+               safInputStream.close();
+               thumbnail.recycle();
+               bitmap.recycle();
+               return;
+            }
+         }
+         safInputStream.close();
+         byteChannel.close();
+         bookArchive.close();
+      }
+      catch (IOException e) {
+         Util.error(TAG, e);
+      }
+   }
+
    public String getBookKey(String categoryName, String bookName){
-      return categoryName + "::" + bookName;
+      return categoryName + "-=-" + bookName;
    }
 
    public void addCategory(String name, ArrayList<Book> books){
+      books.sort(new Comparator<Book>() {
+         @Override
+         public int compare(Book o1, Book o2) {
+            return o1.Name.toLowerCase().compareTo(o2.Name.toLowerCase());
+         }
+      });
       categoriesLookup.put(name, books);
       BookCategory category = new BookCategory();
       category.Name = name;
@@ -124,6 +216,12 @@ public class ObservableCatalog {
       catch (IOException e) {
          Util.error(TAG, e);
       }
+      bookView.PageIds.sort(new Comparator<String>() {
+         @Override
+         public int compare(String o1, String o2) {
+            return o1.toLowerCase().compareTo(o2.toLowerCase());
+         }
+      });
       return bookView;
    }
 }

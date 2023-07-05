@@ -7,4 +7,8 @@ public class Book {
    public String Name;
    public Uri CoverPath;
    public Uri TreeUri;
+
+   public String getDisplayName(){
+      return Name.substring(0,Name.lastIndexOf(" - "));
+   }
 }

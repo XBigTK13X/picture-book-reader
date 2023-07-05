@@ -10,6 +10,7 @@ import androidx.documentfile.provider.DocumentFile;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -27,6 +28,7 @@ import java.util.ArrayList;
 
 public class CategoryListFragment extends Fragment {
     private final String TAG = "CategoryListFragment";
+    private final int COLUMNS = 8;
     private RecyclerView listElement;
     private CategoryAdapter adapter;
     private LinearLayoutManager layoutManager;
@@ -44,7 +46,7 @@ public class CategoryListFragment extends Fragment {
         listElement = view.findViewById(R.id.category_list);
         adapter = new CategoryAdapter();
         listElement.setAdapter(adapter);
-        layoutManager = new LinearLayoutManager(getActivity());
+        layoutManager = new GridLayoutManager(getActivity(), COLUMNS);
         listElement.setLayoutManager(layoutManager);
         viewModel = new ViewModelProvider(this).get(CategoryListViewModel.class);
         viewModel.Data.observe(getViewLifecycleOwner(), new Observer<CategoryList>() {
@@ -61,21 +63,7 @@ public class CategoryListFragment extends Fragment {
             public void onChanged(SettingsViewModel.Settings settings) {
                 if(settings.LibraryDirectory != null){
                     if(!ObservableCatalog.getInstance().hasBooks()){
-                        DocumentFile libraryRoot = DocumentFile.fromTreeUri(MainActivity.getInstance(), settings.LibraryDirectory);
-                        Util.log(TAG, libraryRoot.listFiles().toString());
-                        // Top level is folders (categories)
-                        for(DocumentFile category : libraryRoot.listFiles()){
-                            // Next level is files (books)
-                            ArrayList<Book> books = new ArrayList<Book>();
-                            for(DocumentFile bookFile : category.listFiles()) {
-                                Book book = new Book();
-                                book.TreeUri = bookFile.getUri();
-                                book.Name = bookFile.getName();
-                                book.CategoryName = category.getName();
-                                books.add(book);
-                            }
-                            ObservableCatalog.getInstance().addCategory(category.getName(), books);
-                        }
+                        ObservableCatalog.getInstance().importLibrary();
                     }
                     viewModel.load();
                 }
