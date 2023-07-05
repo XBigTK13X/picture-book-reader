@@ -77,6 +77,7 @@ public class CategoryListFragment extends Fragment {
                                 Book book = new Book();
                                 book.TreeUri = bookFile.getUri();
                                 book.Name = bookFile.getName();
+                                book.CategoryName = category.getName();
                                 books.add(book);
                                 Util.log(TAG, "Book: "+bookFile.getName());
                             }

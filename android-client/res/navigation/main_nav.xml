@@ -111,4 +111,9 @@
         android:name="com.simplepathstudios.pbr.fragment.CategoryListFragment"
         android:label="Categories"
         tools:layout="@layout/category_list_fragment" />
+    <fragment
+        android:id="@+id/book_view_fragment"
+        android:name="com.simplepathstudios.pbr.fragment.BookViewFragment"
+        android:label="Book"
+        tools:layout="@layout/book_view_fragment" />
 </navigation>

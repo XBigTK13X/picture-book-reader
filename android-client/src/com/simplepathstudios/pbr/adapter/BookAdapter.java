@@ -65,9 +65,9 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.ViewHolder> {
       public void onClick(View v) {
          NavController navController = Navigation.findNavController(MainActivity.getInstance(), R.id.nav_host_fragment);
          Bundle bundle = new Bundle();
-         // TODO Open the book viewer
-         //bundle.putString("CategoryName", category.Name);
-         //navController.navigate(R.id.category_view_fragment, bundle);
+         bundle.putString("CategoryName", book.CategoryName);
+         bundle.putString("BookName", book.Name);
+         navController.navigate(R.id.book_view_fragment, bundle);
       }
    }
 }

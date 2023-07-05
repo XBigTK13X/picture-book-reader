@@ -54,14 +54,14 @@ public class CategoryViewFragment extends Fragment {
       categoryName = getArguments().getString("CategoryName");
       MainActivity.getInstance().setActionBarTitle(categoryName);
       MainActivity.getInstance().setActionBarSubtitle("Category");
-      return inflater.inflate(R.layout.album_view_fragment, container, false);
+      return inflater.inflate(R.layout.category_view_fragment, container, false);
    }
 
    @Override
    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
       super.onViewCreated(view, savedInstanceState);
       observableMusicQueue = ObservableMusicQueue.getInstance();
-      listElement = view.findViewById(R.id.album_songs);
+      listElement = view.findViewById(R.id.category_book_list);
       adapter = new BookAdapter();
       listElement.setAdapter(adapter);
       layoutManager = new LinearLayoutManager(getActivity());
@@ -74,6 +74,6 @@ public class CategoryViewFragment extends Fragment {
             adapter.notifyDataSetChanged();
          }
       });
-      categoryViewModel.load(null);
+      categoryViewModel.load(categoryName);
    }
 }
