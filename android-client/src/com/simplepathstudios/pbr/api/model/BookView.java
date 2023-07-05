@@ -1,7 +1,6 @@
 package com.simplepathstudios.pbr.api.model;
 
 import android.graphics.Bitmap;
-import android.media.Image;
 import android.net.Uri;
 
 import java.util.ArrayList;
@@ -22,30 +21,30 @@ public class BookView {
       PageIds = new ArrayList<>();
    }
 
-   public Bitmap GotoPage(int pageIndex){
+   public Bitmap gotoPage(int pageIndex){
       CurrentPageIndex = pageIndex;
       return Pages.get(PageIds.get(pageIndex));
    }
 
-   public Bitmap NextPage(){
+   public Bitmap nextPage(){
       if(CurrentPageIndex >= PageIds.size() - 1){
          return null;
       }
-      return GotoPage(CurrentPageIndex + 1);
+      return gotoPage(CurrentPageIndex + 1);
    }
 
-   public Bitmap PreviousPage(){
+   public Bitmap previousPage(){
       if(CurrentPageIndex < 0){
          return null;
       }
-      return GotoPage(CurrentPageIndex - 1);
+      return gotoPage(CurrentPageIndex - 1);
    }
 
-   public int GetPageCount(){
+   public int getPageCount(){
       return PageIds.size();
    }
 
-   public Bitmap GetCurrentPage(){
-      return GotoPage(CurrentPageIndex);
+   public Bitmap getCurrentPage(){
+      return gotoPage(CurrentPageIndex);
    }
 }

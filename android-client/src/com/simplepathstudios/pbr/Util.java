@@ -3,12 +3,9 @@ package com.simplepathstudios.pbr;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.media.MediaPlayer;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
-
-import com.simplepathstudios.pbr.api.ApiClient;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -80,16 +77,6 @@ public class Util {
             String timestamp = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(new Date());
             String logEntry = String.format("[PBR] - %s - %s - %s : %s",System.currentTimeMillis(), timestamp,tag,message);
             Log.d(tag, logEntry);
-            if (ApiClient.getInstance().getCurrentUser() != null) {
-                ApiClient.getInstance().log(logEntry).enqueue(new Callback() {
-                    @Override
-                    public void onResponse(Call call, Response response) { }
-                    @Override
-                    public void onFailure(Call call, Throwable t) {
-                        Log.e(TAG, "Unable to send log",t);
-                    }
-                });
-            }
         } catch(Exception e){
             Log.d(TAG, "An error occurred while logging",e);
         }

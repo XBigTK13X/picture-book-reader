@@ -34,15 +34,6 @@ public class SettingsViewModel extends ViewModel {
         Data.setValue(settings);
     }
 
-    public void setUsername(String username){
-        Settings settings = Data.getValue();
-        settings.Username = username;
-        SharedPreferences.Editor editor = settings.Preferences.edit();
-        editor.putString("Username", username);
-        editor.commit();
-        Data.setValue(settings);
-    }
-
     public void setDebugLog(boolean enabled){
         Settings settings = Data.getValue();
         settings.EnableDebugLog = enabled;

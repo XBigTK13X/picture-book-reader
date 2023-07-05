@@ -1,7 +1,6 @@
 package com.simplepathstudios.pbr.fragment;
 
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,12 +15,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.simplepathstudios.pbr.MainActivity;
 import com.simplepathstudios.pbr.R;
 import com.simplepathstudios.pbr.api.model.BookView;
-import com.simplepathstudios.pbr.api.model.CategoryView;
-import com.simplepathstudios.pbr.api.model.MusicFile;
-import com.simplepathstudios.pbr.api.model.MusicQueue;
 import com.simplepathstudios.pbr.viewmodel.BookViewViewModel;
-import com.simplepathstudios.pbr.viewmodel.CategoryViewViewModel;
-import com.simplepathstudios.pbr.viewmodel.ObservableMusicQueue;
 
 public class BookViewFragment extends Fragment {
    private static final String TAG = "BookViewFragment";
@@ -44,14 +38,13 @@ public class BookViewFragment extends Fragment {
       currentPage = view.findViewById(R.id.current_page_image);
       progress = view.findViewById(R.id.progress_text);
       progress.setText("(0/0)");
-      bookViewModel = new ViewModelProvider(this).get(BookViewViewModel.class);
+      bookViewModel = new ViewModelProvider(MainActivity.getInstance()).get(BookViewViewModel.class);
       bookViewModel.Data.observe(getViewLifecycleOwner(), new Observer<BookView>() {
          @Override
          public void onChanged(BookView bookView) {
             book = bookView;
-            book.NextPage();
-            currentPage.setImageBitmap(book.GetCurrentPage());
-            progress.setText("(" + (book.CurrentPageIndex + 1) + " / " + book.GetPageCount() + ")");
+            currentPage.setImageBitmap(book.getCurrentPage());
+            progress.setText("(" + (book.CurrentPageIndex + 1) + " / " + book.getPageCount() + ")");
          }
       });
       bookViewModel.load(categoryName, bookName);

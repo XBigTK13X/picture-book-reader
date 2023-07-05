@@ -5,15 +5,7 @@ import androidx.lifecycle.ViewModel;
 
 import com.simplepathstudios.pbr.LoadingIndicator;
 import com.simplepathstudios.pbr.ObservableCatalog;
-import com.simplepathstudios.pbr.Util;
-import com.simplepathstudios.pbr.api.ApiClient;
-import com.simplepathstudios.pbr.api.model.AlbumView;
 import com.simplepathstudios.pbr.api.model.BookView;
-import com.simplepathstudios.pbr.api.model.CategoryView;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class BookViewViewModel extends ViewModel {
    public MutableLiveData<BookView> Data;
@@ -25,5 +17,17 @@ public class BookViewViewModel extends ViewModel {
       LoadingIndicator.setLoading(true);
       Data.setValue(ObservableCatalog.getInstance().getBook(categoryName, bookName));
       LoadingIndicator.setLoading(false);
+   }
+
+   public void nextPage(){
+      BookView bookView = Data.getValue();
+      bookView.nextPage();
+      Data.setValue(bookView);
+   }
+
+   public void previousPage(){
+      BookView bookView = Data.getValue();
+      bookView.previousPage();
+      Data.setValue(bookView);
    }
 }

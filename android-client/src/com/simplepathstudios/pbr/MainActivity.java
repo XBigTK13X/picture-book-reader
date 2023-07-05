@@ -3,18 +3,14 @@ package com.simplepathstudios.pbr;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.StrictMode;
-import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 
@@ -23,7 +19,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
-import androidx.documentfile.provider.DocumentFile;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -33,22 +28,10 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
-import com.google.android.gms.cast.framework.CastButtonFactory;
 import com.google.android.material.navigation.NavigationView;
-import com.simplepathstudios.pbr.api.ApiClient;
-import com.simplepathstudios.pbr.api.model.MusicPlaylistListItem;
-import com.simplepathstudios.pbr.api.model.MusicQueue;
-import com.simplepathstudios.pbr.api.model.PlaylistList;
-import com.simplepathstudios.pbr.audio.AudioPlayer;
-import com.simplepathstudios.pbr.viewmodel.ObservableMusicQueue;
-import com.simplepathstudios.pbr.viewmodel.PlaylistListViewModel;
+import com.simplepathstudios.pbr.api.model.BookView;
+import com.simplepathstudios.pbr.viewmodel.BookViewViewModel;
 import com.simplepathstudios.pbr.viewmodel.SettingsViewModel;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.stream.Stream;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -66,19 +49,16 @@ public class MainActivity extends AppCompatActivity {
     private NavigationView navigationView;
     private LinearLayout mainLayout;
     private LinearLayout simpleMainLayout;
+    private NavDestination currentLocation;
 
     private SettingsViewModel settingsViewModel;
-    private ObservableMusicQueue observableMusicQueue;
-    private MusicQueue queue;
-    private PlaylistListViewModel playlistListViewModel;
-    private PlaylistList playlistListData;
 
     private Toolbar toolbar;
     private DrawerLayout drawerLayout;
     private ProgressBar loadingView;
-    private ImageButton simpleUiMusicButton;
-    private AudioPlayer audioPlayer;
-    private NavDestination currentLocation;
+
+    private BookView book;
+    private BookViewViewModel bookViewModel;
 
     public void setActionBarTitle(String title) {
         getSupportActionBar().setTitle(title);
@@ -86,14 +66,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void setActionBarSubtitle(String subtitle) {
         getSupportActionBar().setSubtitle(subtitle);
-    }
-
-    public ArrayList<MusicPlaylistListItem> getPlaylists(){
-        return playlistListData.list;
-    }
-
-    public void refreshPlaylists(){
-        playlistListViewModel.load();
     }
 
     @Override
@@ -107,7 +79,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -139,7 +110,6 @@ public class MainActivity extends AppCompatActivity {
                     .detectLeakedClosableObjects()
                     .build());
         }
-        ApiClient.retarget(settings.ServerUrl, settings.Username);
         Util.log(TAG, "====== Starting new app instance ======");
 
         toolbar = findViewById(R.id.toolbar);
@@ -148,8 +118,6 @@ public class MainActivity extends AppCompatActivity {
         loadingView = findViewById(R.id.loading_indicator);
         LoadingIndicator.setProgressBar(loadingView);
 
-        observableMusicQueue = ObservableMusicQueue.getInstance();
-
         drawerLayout = findViewById(R.id.main_activity_drawer);
         mainLayout = findViewById(R.id.main_activity_layout);
         simpleMainLayout = findViewById(R.id.simple_ui_main_activity_layout);
@@ -157,17 +125,9 @@ public class MainActivity extends AppCompatActivity {
         navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.category_list_fragment,
-                R.id.queue_fragment,
-                R.id.album_list_fragment,
-                R.id.artist_list_fragment,
                 R.id.search_fragment,
                 R.id.options_fragment,
-                R.id.artist_view_fragment,
-                R.id.album_view_fragment,
-                R.id.playlist_view_fragment,
-                R.id.playlist_list_fragment,
-                R.id.random_list_fragment,
-                R.id.now_playing_fragment)
+                R.id.random_list_fragment)
                 .setDrawerLayout(drawerLayout)
                 .build();
         navController.addOnDestinationChangedListener(new NavController.OnDestinationChangedListener() {
@@ -200,10 +160,29 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Hide the keyboard if touch event outside keyboard (better search experience)
-        findViewById(R.id.main_activity_drawer).setOnTouchListener(new View.OnTouchListener() {
+        bookViewModel = new ViewModelProvider(this).get(BookViewViewModel.class);
+
+        drawerLayout.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
+                if(event.getAction() == MotionEvent.ACTION_DOWN) {
+                    Util.log(TAG, "X: " + event.getRawX() + ", Y: " + event.getRawY() + ", Width: " + ((int) (drawerLayout.getWidth() / 2)));
+                    if (currentLocation.getLabel().toString().equals("Book")) {
+                        Util.log(TAG, "Tapped the book");
+                        int screenHalf = (int) (drawerLayout.getWidth() / 2);
+                        int x = (int) event.getRawX();
+                        int y = (int) event.getRawY();
+                        if (x > screenHalf) {
+                            Util.log(TAG, "Going right");
+                            bookViewModel.nextPage();
+                        }
+                        if (x < screenHalf) {
+                            Util.log(TAG, "Going left");
+                            bookViewModel.previousPage();
+                        }
+                    }
+                }
+                // Hide the keyboard if touch event outside keyboard (better search experience)
                 InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
                 if (imm != null) {
                     View focus = getCurrentFocus();
@@ -215,46 +194,20 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        simpleUiMusicButton = findViewById(R.id.simple_ui_music_button);
-        simpleUiMusicButton.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View view) {
-                AudioPlayer audioPlayer = AudioPlayer.getInstance();
-                if(audioPlayer.isPlaying()){
-                    audioPlayer.pause();
-                } else {
-                    audioPlayer.play();
-                }
-            }
-        });
-
         if (settings.EnableSimpleUIMode) {
             mainLayout.setVisibility(View.GONE);
             navigationView.setVisibility(View.GONE);
             simpleMainLayout.setVisibility(View.VISIBLE);
-            ObservableMusicQueue.getInstance().setRepeatMode(ObservableMusicQueue.RepeatMode.All);
         } else {
             mainLayout.setVisibility(View.VISIBLE);
             navigationView.setVisibility(View.VISIBLE);
             simpleMainLayout.setVisibility(View.GONE);
         }
-
-
-        playlistListViewModel = new ViewModelProvider(MainActivity.getInstance()).get(PlaylistListViewModel.class);
-        playlistListViewModel.Data.observe(MainActivity.getInstance(), new Observer<PlaylistList>() {
-            @Override
-            public void onChanged(PlaylistList playlistList) {
-                playlistListData = playlistList;
-            }
-        });
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
-        getMenuInflater().inflate(R.menu.menu, menu);
-        // If this happens before cast context discovery is complete, then the menu button won't appear
-        CastButtonFactory.setUpMediaRouteButton(this, menu, R.id.media_route_menu_item);
         return true;
     }
 
@@ -263,8 +216,6 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         Intent intent = getIntent();
         Util.log(TAG, "Resuming with intent " + intent.getAction());
-        audioPlayer = AudioPlayer.getInstance();
-        //New SDK logic ObservableCastContext.getInstance().reconnect();
     }
 
     @Override
@@ -277,7 +228,5 @@ public class MainActivity extends AppCompatActivity {
     public void onDestroy() {
         super.onDestroy();
         Util.log(TAG, "Destroying");
-        audioPlayer.destroy();
-        audioPlayer = null;
     }
 }

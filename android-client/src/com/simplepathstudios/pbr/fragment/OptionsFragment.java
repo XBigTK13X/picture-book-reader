@@ -7,9 +7,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
-import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -19,16 +16,11 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.simplepathstudios.pbr.R;
 import com.simplepathstudios.pbr.PBRSettings;
-import com.simplepathstudios.pbr.api.ApiClient;
-import com.simplepathstudios.pbr.api.model.ServerInfo;
-import com.simplepathstudios.pbr.viewmodel.ObservableMusicQueue;
-import com.simplepathstudios.pbr.viewmodel.ServerInfoViewModel;
 import com.simplepathstudios.pbr.viewmodel.SettingsViewModel;
 
 public class OptionsFragment extends Fragment {
     private static final String TAG = "OptionsFragment";
     private SettingsViewModel settingsViewModel;
-    private ServerInfoViewModel serverInfoViewModel;
     private TextView versionText;
     private TextView errorText;
     private TextView userText;
@@ -73,30 +65,6 @@ public class OptionsFragment extends Fragment {
             }
         });
 
-        serverInfoViewModel = new ViewModelProvider(getActivity()).get(ServerInfoViewModel.class);
-        serverInfoViewModel.Data.observe(getViewLifecycleOwner(), new Observer<ServerInfo>() {
-            @Override
-            public void onChanged(ServerInfo serverInfo) {
-                Log.d(TAG, "Loaded serverInfo");
-                versionText.setText(String.format(
-                        "Client Version: %s\nServer Version: %s\nClient Built: %s\nServer Built: %s",
-                        PBRSettings.ClientVersion,
-                        serverInfo.version,
-                        PBRSettings.BuildDate,
-                        serverInfo.buildDate
-                ));
-            }
-        });
-        serverInfoViewModel.Error.observe(getViewLifecycleOwner(), new Observer<String>() {
-            @Override
-            public void onChanged(String error) {
-                if(error != null){
-                    Log.d(TAG, "An error occurred while loading "+error);
-                    errorText.setText(error);
-                }
-            }
-        });
-
         clearLibraryButton = view.findViewById(R.id.clear_library_button);
         clearLibraryButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -111,9 +79,6 @@ public class OptionsFragment extends Fragment {
         errorText = view.findViewById(R.id.error_text);
 
         userText = view.findViewById(R.id.user_text);
-        userText.setText(String.format("Logged in as %s.", ApiClient.getInstance().getCurrentUser()));
-
-        serverInfoViewModel.load();
 
         debugLogStatus = view.findViewById(R.id.debug_log_status);
         debugLogStatus.setText("Debug logging is "+(PBRSettings.EnableDebugLog ? "enabled" : "disabled"));

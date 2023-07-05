@@ -56,14 +56,17 @@ public class ObservableCatalog {
       }
    }
 
+   public String getBookKey(String categoryName, String bookName){
+      return categoryName + "::" + bookName;
+   }
+
    public void addCategory(String name, ArrayList<Book> books){
       categoriesLookup.put(name, books);
       BookCategory category = new BookCategory();
       category.Name = name;
       categoriesList.add(category);
       for(Book book : books){
-         Util.log(TAG, (name+"::"+book.Name));
-         bookLookup.put(name+"::"+book.Name, book);
+         bookLookup.put(getBookKey(name, book.Name), book);
       }
       notifyObservers();
    }
@@ -85,8 +88,7 @@ public class ObservableCatalog {
    }
 
    public BookView getBook(String categoryName, String bookName){
-      Util.log(TAG, "getting - "+categoryName+"::"+bookName);
-      Book book = bookLookup.get(categoryName+"::"+bookName);
+      Book book = bookLookup.get(getBookKey(categoryName,bookName));
       BookView bookView = new BookView();
       bookView.Name = book.Name;
       bookView.TreeUi = book.TreeUri;

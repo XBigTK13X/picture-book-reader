@@ -13,7 +13,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.simplepathstudios.pbr.MainActivity;
 import com.simplepathstudios.pbr.R;
 import com.simplepathstudios.pbr.api.model.BookCategory;
-import com.simplepathstudios.pbr.api.model.MusicCategory;
 
 import java.util.ArrayList;
 

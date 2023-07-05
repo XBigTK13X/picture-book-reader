@@ -13,7 +13,6 @@
         android:adjustViewBounds="false"
         android:background="@drawable/image_background"
         android:cropToPadding="false"
-        android:padding="10dp"
         android:scaleType="fitCenter" />
 
     <TextView
