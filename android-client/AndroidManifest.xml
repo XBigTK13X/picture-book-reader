@@ -14,7 +14,7 @@
 
         <activity
             android:name="com.simplepathstudios.pbr.MainActivity"
-            android:label="PBR"
+            android:label="Picture Book Reader"
             android:exported="true"
             android:screenOrientation="landscape"
             android:launchMode="singleTask">

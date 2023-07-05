@@ -118,7 +118,6 @@ public class ObservableCatalog {
                Bitmap bitmap = BitmapFactory.decodeByteArray(rawImage,0,rawImage.length);
                bookView.Pages.put(entryName, bitmap);
                bookView.PageIds.add(entryName);
-               Util.log(TAG, entryName);
             }
          }
       }

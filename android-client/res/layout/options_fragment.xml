@@ -14,19 +14,13 @@
             android:id="@+id/download_update_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Update PBR" />
+            android:text="Update Picture Book Reader" />
 
         <TextView
             android:id="@+id/version_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="PBR" />
-
-        <TextView
-            android:id="@+id/user_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Logged in as ???" />
+            android:text="Picture Book Reader" />
 
         <Button
             android:id="@+id/clear_library_button"

@@ -4,8 +4,8 @@
 
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
-    <color name="background_start">#111111</color>
-    <color name="background_end">#111111</color>
+    <color name="background_start">#000000</color>
+    <color name="background_end">#000000</color>
     <color name="empty">#7A6488</color>
 
     <color name="primary">#AC03F4</color>

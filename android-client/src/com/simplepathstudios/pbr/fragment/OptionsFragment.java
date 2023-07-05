@@ -22,8 +22,6 @@ public class OptionsFragment extends Fragment {
     private static final String TAG = "OptionsFragment";
     private SettingsViewModel settingsViewModel;
     private TextView versionText;
-    private TextView errorText;
-    private TextView userText;
     private Button debugLogToggle;
     private TextView debugLogStatus;
     private Button updatePBRButton;
@@ -73,12 +71,9 @@ public class OptionsFragment extends Fragment {
             }
         });
 
-        String versionInfo = String.format("Client Version: %s\nServer Version: %s\nClient Built: %s\nServer Built: %s",PBRSettings.ClientVersion, "???",PBRSettings.BuildDate,"???");
+        String versionInfo = String.format("Client Version: %s\nClient Built: %s",PBRSettings.ClientVersion, PBRSettings.BuildDate);
         versionText = view.findViewById(R.id.version_text);
         versionText.setText(versionInfo);
-        errorText = view.findViewById(R.id.error_text);
-
-        userText = view.findViewById(R.id.user_text);
 
         debugLogStatus = view.findViewById(R.id.debug_log_status);
         debugLogStatus.setText("Debug logging is "+(PBRSettings.EnableDebugLog ? "enabled" : "disabled"));

@@ -59,19 +59,13 @@ public class CategoryListFragment extends Fragment {
         settingsViewModel.Data.observe(MainActivity.getInstance(), new Observer<SettingsViewModel.Settings>() {
             @Override
             public void onChanged(SettingsViewModel.Settings settings) {
-                Util.log(TAG, "Definitely changed some settings");
-                if(settings.LibraryDirectory == null){
-                    Util.log(TAG, "No library found");
-                } else {
-                    Util.log(TAG, "Library directory: "+settings.LibraryDirectory.toString());
+                if(settings.LibraryDirectory != null){
                     if(!ObservableCatalog.getInstance().hasBooks()){
-                        Util.log(TAG, "Looping through files in "+settings.LibraryDirectory.toString());
                         DocumentFile libraryRoot = DocumentFile.fromTreeUri(MainActivity.getInstance(), settings.LibraryDirectory);
                         Util.log(TAG, libraryRoot.listFiles().toString());
                         // Top level is folders (categories)
                         for(DocumentFile category : libraryRoot.listFiles()){
                             // Next level is files (books)
-                            Util.log(TAG, "Category: "+category.getName());
                             ArrayList<Book> books = new ArrayList<Book>();
                             for(DocumentFile bookFile : category.listFiles()) {
                                 Book book = new Book();
@@ -79,7 +73,6 @@ public class CategoryListFragment extends Fragment {
                                 book.Name = bookFile.getName();
                                 book.CategoryName = category.getName();
                                 books.add(book);
-                                Util.log(TAG, "Book: "+bookFile.getName());
                             }
                             ObservableCatalog.getInstance().addCategory(category.getName(), books);
                         }

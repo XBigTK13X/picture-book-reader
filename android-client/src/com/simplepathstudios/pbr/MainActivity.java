@@ -1,5 +1,6 @@
 package com.simplepathstudios.pbr;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -36,7 +37,6 @@ import com.simplepathstudios.pbr.viewmodel.SettingsViewModel;
 public class MainActivity extends AppCompatActivity {
 
     private final String TAG = "MainActivity";
-    private final int SEEK_BAR_UPDATE_MILLISECONDS = 350;
     public static final int OPEN_LIBRARY_DIR_CODE = 123456;
 
     private static MainActivity __instance;
@@ -48,7 +48,6 @@ public class MainActivity extends AppCompatActivity {
     private NavController navController;
     private NavigationView navigationView;
     private LinearLayout mainLayout;
-    private LinearLayout simpleMainLayout;
     private NavDestination currentLocation;
 
     private SettingsViewModel settingsViewModel;
@@ -80,12 +79,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         __instance = this;
-
+        Util.setGlobalContext(this);
 
         Util.registerGlobalExceptionHandler();
 
@@ -120,14 +120,12 @@ public class MainActivity extends AppCompatActivity {
 
         drawerLayout = findViewById(R.id.main_activity_drawer);
         mainLayout = findViewById(R.id.main_activity_layout);
-        simpleMainLayout = findViewById(R.id.simple_ui_main_activity_layout);
         navigationView = findViewById(R.id.nav_view);
         navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        // Pages that show full nav, not just the back button
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.category_list_fragment,
-                R.id.search_fragment,
-                R.id.options_fragment,
-                R.id.random_list_fragment)
+                R.id.options_fragment)
                 .setDrawerLayout(drawerLayout)
                 .build();
         navController.addOnDestinationChangedListener(new NavController.OnDestinationChangedListener() {
@@ -166,19 +164,25 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if(event.getAction() == MotionEvent.ACTION_DOWN) {
-                    Util.log(TAG, "X: " + event.getRawX() + ", Y: " + event.getRawY() + ", Width: " + ((int) (drawerLayout.getWidth() / 2)));
                     if (currentLocation.getLabel().toString().equals("Book")) {
-                        Util.log(TAG, "Tapped the book");
                         int screenHalf = (int) (drawerLayout.getWidth() / 2);
                         int x = (int) event.getRawX();
                         int y = (int) event.getRawY();
                         if (x > screenHalf) {
-                            Util.log(TAG, "Going right");
-                            bookViewModel.nextPage();
+                            if(bookViewModel.isLastPage()){
+                                Util.toast("Finished "+bookViewModel.Data.getValue().Name);
+                                navController.navigateUp();
+                            } else {
+                                bookViewModel.nextPage();
+                            }
                         }
                         if (x < screenHalf) {
-                            Util.log(TAG, "Going left");
-                            bookViewModel.previousPage();
+                            if(bookViewModel.isFirstPage()){
+                                Util.toast("Finished "+bookViewModel.Data.getValue().Name);
+                                navController.navigateUp();
+                            } else {
+                                bookViewModel.previousPage();
+                            }
                         }
                     }
                 }
@@ -194,15 +198,8 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        if (settings.EnableSimpleUIMode) {
-            mainLayout.setVisibility(View.GONE);
-            navigationView.setVisibility(View.GONE);
-            simpleMainLayout.setVisibility(View.VISIBLE);
-        } else {
-            mainLayout.setVisibility(View.VISIBLE);
-            navigationView.setVisibility(View.VISIBLE);
-            simpleMainLayout.setVisibility(View.GONE);
-        }
+        mainLayout.setVisibility(View.VISIBLE);
+        navigationView.setVisibility(View.VISIBLE);
     }
 
     @Override

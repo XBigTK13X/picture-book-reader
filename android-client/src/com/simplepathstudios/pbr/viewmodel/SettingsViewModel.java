@@ -19,18 +19,13 @@ public class SettingsViewModel extends ViewModel {
     public void initialize(SharedPreferences preferences){
         Settings settings = new Settings();
         settings.Preferences = preferences;
-        settings.Username = settings.Preferences.getString("Username",null);
-        settings.ServerUrl = settings.Preferences.getString("ServerUrl", PBRSettings.ProdServerUrl);
         settings.EnableDebugLog = settings.Preferences.getBoolean("EnableDebugLog", false);
-        settings.InternalMediaVolume = settings.Preferences.getFloat("InternalMediaVolume", 1.0f);
-        settings.EnableSimpleUIMode = settings.Preferences.getBoolean("EnableSimpleUIMode", false);
         settings.LibraryDirectory = null;
         String uriString = settings.Preferences.getString("LibraryDirectory", null);
         if(uriString != null){
             settings.LibraryDirectory = Uri.parse(uriString);
         }
         PBRSettings.EnableDebugLog = settings.EnableDebugLog;
-        PBRSettings.InternalMediaVolume = settings.InternalMediaVolume;
         Data.setValue(settings);
     }
 
@@ -60,12 +55,8 @@ public class SettingsViewModel extends ViewModel {
     }
 
     public class Settings {
-        public String Username;
-        public String ServerUrl;
         public SharedPreferences Preferences;
         public boolean EnableDebugLog;
-        public double InternalMediaVolume;
-        public boolean EnableSimpleUIMode;
         public Uri LibraryDirectory;
     }
 }

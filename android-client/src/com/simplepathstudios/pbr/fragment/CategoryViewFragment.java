@@ -35,8 +35,7 @@ public class CategoryViewFragment extends Fragment {
    @Override
    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
       categoryName = getArguments().getString("CategoryName");
-      MainActivity.getInstance().setActionBarTitle(categoryName);
-      MainActivity.getInstance().setActionBarSubtitle("Category");
+      MainActivity.getInstance().setActionBarTitle("Category | "+categoryName);
       return inflater.inflate(R.layout.category_view_fragment, container, false);
    }
 

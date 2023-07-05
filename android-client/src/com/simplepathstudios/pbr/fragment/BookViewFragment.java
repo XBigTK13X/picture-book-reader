@@ -29,6 +29,7 @@ public class BookViewFragment extends Fragment {
    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
       categoryName = getArguments().getString("CategoryName");
       bookName = getArguments().getString("BookName");
+      MainActivity.getInstance().setActionBarTitle("Book | " + bookName);
       return inflater.inflate(R.layout.book_view_fragment, container, false);
    }
 

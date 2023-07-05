@@ -30,4 +30,14 @@ public class BookViewViewModel extends ViewModel {
       bookView.previousPage();
       Data.setValue(bookView);
    }
+
+   public boolean isFirstPage(){
+      BookView bookView = Data.getValue();
+      return bookView.CurrentPageIndex <= 0;
+   }
+
+   public boolean isLastPage(){
+      BookView bookView = Data.getValue();
+      return bookView.CurrentPageIndex >= bookView.Pages.size() - 1;
+   }
 }

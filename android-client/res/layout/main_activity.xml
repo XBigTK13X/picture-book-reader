@@ -17,7 +17,7 @@
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:background="?attr/colorPrimary"
             android:minHeight="?attr/actionBarSize"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
@@ -47,32 +47,6 @@
         </RelativeLayout>
 
     </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/simple_ui_main_activity_layout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:keepScreenOn="true"
-        android:orientation="vertical">
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_gravity="center_vertical|center_horizontal">
-        <ImageButton
-            android:id="@+id/simple_ui_music_button"
-            android:layout_width="250dp"
-            android:layout_height="250dp"
-            android:layout_centerInParent="true"
-            android:layout_weight="1"
-            android:background="@color/primary"
-            android:src="@drawable/ic_baseline_music_note_24"
-            android:text="Music"
-            >
-        </ImageButton>
-
-        </RelativeLayout>
-    </LinearLayout>
-
 
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/nav_view"
