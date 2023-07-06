@@ -1,19 +1,21 @@
 package com.simplepathstudios.pbr.api.model;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class BookView {
    public Uri TreeUi;
    public String Name;
-   public String CategoryName;
-   public HashMap<String, Bitmap> Pages;
+   public HashMap<String, File> Pages;
    public ArrayList<String> PageIds;
    public HashMap<String, String> Info;
    public int CurrentPageIndex = 0;
+   private Bitmap currentPage;
 
    public BookView(){
       Pages = new HashMap<>();
@@ -23,7 +25,12 @@ public class BookView {
 
    public Bitmap gotoPage(int pageIndex){
       CurrentPageIndex = pageIndex;
-      return Pages.get(PageIds.get(pageIndex));
+      File pageFile = Pages.get(PageIds.get(pageIndex));
+      if(currentPage != null){
+         currentPage.recycle();
+      }
+      currentPage = BitmapFactory.decodeFile(pageFile.getAbsolutePath());
+      return currentPage;
    }
 
    public Bitmap nextPage(){

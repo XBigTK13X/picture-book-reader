@@ -14,21 +14,13 @@ import com.simplepathstudios.pbr.api.model.BookView;
 import com.simplepathstudios.pbr.api.model.CategoryList;
 import com.simplepathstudios.pbr.api.model.CategoryView;
 
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipFile;
-import org.apache.commons.compress.utils.IOUtils;
-import org.apache.commons.compress.utils.SeekableInMemoryByteChannel;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.zip.ZipEntry;
 
 public class ObservableCatalog {
    public final String TAG = "ObservableCatalog";
@@ -104,38 +96,25 @@ public class ObservableCatalog {
          return;
       }
       try {
-         Util.log(TAG,"Parse book " + archiveUri);
-         InputStream safInputStream = MainActivity.getInstance().getContentResolver().openInputStream(archiveUri);
-         byte[] zipBytes = IOUtils.toByteArray(safInputStream);
-         SeekableInMemoryByteChannel byteChannel = new SeekableInMemoryByteChannel(zipBytes);
-         ZipFile bookArchive = new ZipFile(byteChannel);
-         Enumeration<ZipArchiveEntry> entries = bookArchive.getEntries();
-         while (entries.hasMoreElements()) {
-            ZipArchiveEntry entry = entries.nextElement();
-            if (entry.isDirectory()) {
+         ArrayList<File> files = ZipUtil.extract(archiveUri,"extract-thumbnails/");
+         for(File extractedFile : files){
+            if (extractedFile.isDirectory()) {
                continue;
             }
-            String entryName = entry.getName();
+            String entryName = extractedFile.getName();
             if (!entryName.endsWith(".xml") && !entryName.endsWith(".txt")) {
-               InputStream zipStream = bookArchive.getInputStream(entry);
-               byte[] rawImage = new byte[(int) entry.getSize()];
-               int ii = 0;
-               while (ii < rawImage.length) {
-                  ii += zipStream.read(rawImage, ii, rawImage.length - ii);
+               Bitmap bitmap = BitmapFactory.decodeFile(extractedFile.getAbsolutePath());
+               if(bitmap != null){
+                  Bitmap thumbnail = Bitmap.createScaledBitmap(bitmap,500,500,true);
+                  FileOutputStream thumbnailStream = MainActivity.getInstance().openFileOutput(getThumbnailPath(bookKey), Context.MODE_PRIVATE);
+                  thumbnail.compress(Bitmap.CompressFormat.JPEG, 95, thumbnailStream);
+                  thumbnail.recycle();
+                  bitmap.recycle();
+                  ZipUtil.clean("extract-thumbnails/");
+                  return;
                }
-               Bitmap bitmap = BitmapFactory.decodeByteArray(rawImage, 0, rawImage.length);
-               Bitmap thumbnail = Bitmap.createScaledBitmap(bitmap,500,500,true);
-               FileOutputStream thumbnailStream = MainActivity.getInstance().openFileOutput(getThumbnailPath(bookKey), Context.MODE_PRIVATE);
-               thumbnail.compress(Bitmap.CompressFormat.JPEG, 95, thumbnailStream);
-               safInputStream.close();
-               thumbnail.recycle();
-               bitmap.recycle();
-               return;
             }
          }
-         safInputStream.close();
-         byteChannel.close();
-         bookArchive.close();
       }
       catch (IOException e) {
          Util.error(TAG, e);
@@ -186,34 +165,23 @@ public class ObservableCatalog {
       bookView.TreeUi = book.TreeUri;
       //TODO Add some progress bar or something when opening the book
       try {
-         InputStream safInputStream = MainActivity.getInstance().getContentResolver().openInputStream(book.TreeUri);
-         byte[] zipBytes = IOUtils.toByteArray(safInputStream);
-         ZipFile bookArchive = new ZipFile(new SeekableInMemoryByteChannel(zipBytes));
-         Enumeration<ZipArchiveEntry> entries = bookArchive.getEntries();
-         while(entries.hasMoreElements()){
-            ZipArchiveEntry entry = entries.nextElement();
-            if(entry.isDirectory()){
+         ArrayList<File> extractedFiles = ZipUtil.extract(book.TreeUri, "extract-book/");
+         for(File file : extractedFiles){
+            if(file.isDirectory()){
                continue;
             }
-            String entryName = entry.getName();
+            String entryName = file.getName();
             if(entryName.endsWith(".xml") || entryName.endsWith(".txt")){
                //TODO Parse text
                bookView.Info.put(entryName, null);
             }
             else {
-               InputStream zipStream = bookArchive.getInputStream(entry);
-               byte[] rawImage = new byte[(int) entry.getSize()];
-               int ii = 0;
-               while (ii < rawImage.length) {
-                  ii += zipStream.read(rawImage, ii, rawImage.length - ii);
-               }
-               Bitmap bitmap = BitmapFactory.decodeByteArray(rawImage,0,rawImage.length);
-               bookView.Pages.put(entryName, bitmap);
+               bookView.Pages.put(entryName, file);
                bookView.PageIds.add(entryName);
             }
          }
       }
-      catch (IOException e) {
+      catch (Exception e) {
          Util.error(TAG, e);
       }
       bookView.PageIds.sort(new Comparator<String>() {

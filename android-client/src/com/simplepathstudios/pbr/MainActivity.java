@@ -176,7 +176,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                         if (x < screenHalf) {
                             if(bookViewModel.isFirstPage()){
-                                Util.toast("Finished "+bookViewModel.Data.getValue().Name);
+                                Util.toast("Leaving "+bookViewModel.Data.getValue().Name);
                                 navController.navigateUp();
                             } else {
                                 bookViewModel.previousPage();
