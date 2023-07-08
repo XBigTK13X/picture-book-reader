@@ -8,9 +8,9 @@
     <color name="background_end">#000000</color>
     <color name="empty">#7A6488</color>
 
-    <color name="primary">#AC03F4</color>
-    <color name="primary_dark">#9302D1</color>
-    <color name="accent">#DC03F4</color>
+    <color name="primary">#00C81B</color>
+    <color name="primary_dark">#017714</color>
+    <color name="accent">#18DF02</color>
     <color name="primary_text">#212121</color>
     <color name="secondary_text">#727272</color>
 

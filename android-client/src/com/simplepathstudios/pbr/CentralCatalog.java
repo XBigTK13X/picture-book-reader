@@ -65,7 +65,6 @@ public class CentralCatalog {
       }
    }
 
-   @SuppressLint("CheckResult")
    public Observable<Boolean> importLibrary(boolean force){
       if(force){
          Util.clean("thumbnails/");
@@ -75,25 +74,27 @@ public class CentralCatalog {
       DocumentFile libraryRoot = DocumentFile.fromTreeUri(MainActivity.getInstance(), PBRSettings.LibraryDirectory);
 
       return Observable.fromCallable(()->{
-         // Top level is folders (categories)}
-         int categoryIndex = 0;
+         int bookIndex = 0;
+         int bookCount = 0;
          DocumentFile[] categories = libraryRoot.listFiles();
+         // Top level is folders (categories)}
          for(DocumentFile category : categories){
             // Next level is files (books)
+            for(DocumentFile book : category.listFiles()){
+               bookCount++;
+            }
+         }
+         for(DocumentFile category : categories){
             DocumentFile[] books = category.listFiles();
             ArrayList<Book> parsedBooks = new ArrayList<Book>();
-            categoryIndex++;
-            int bookIndex = 0;
             for(DocumentFile bookFile : books){
-               String loadingMessage = "Generating thumbnails for category [" + category.getName() + "] ("+(categoryIndex)+"/"+(categories.length)+")";
-               loadingMessage += "\n  - Book ("+(bookIndex++)+"/"+books.length+") - "+bookFile.getName()+"";
+               String loadingMessage = "(" + (++bookIndex) + "/" + bookCount + ") Generating thumbnail for [" + bookFile.getName() + "]";
                  LoadingIndicator.setLoadingMessage(loadingMessage);
                  Book book = new Book();
                  book.TreeUri = bookFile.getUri();
                  book.Name = bookFile.getName();
                  book.CategoryName = category.getName();
                  parsedBooks.add(book);
-                 Util.log(TAG, "Generate thumbnail for "+book.Name);
                  generateThumbnail(getBookKey(book.CategoryName, book.Name), book.TreeUri);
             };
             CentralCatalog.getInstance().addCategory(category.getName(), parsedBooks);
@@ -104,16 +105,8 @@ public class CentralCatalog {
         .observeOn(AndroidSchedulers.mainThread());
    }
 
-   public Bitmap getBookThumbnail(String category, String book) {
-      try{
-         FileInputStream thumbnailStream = new FileInputStream(getThumbnail(getBookKey(category, book)));
-         Bitmap bitmap = BitmapFactory.decodeStream(thumbnailStream);
-         thumbnailStream.close();
-         return bitmap;
-      } catch(IOException e){
-         Util.error(TAG, e);
-      }
-      return null;
+   public File getBookThumbnail(String category, String book) {
+      return getThumbnail(getBookKey(category, book));
    }
 
    private File getThumbnail(String bookKey){
@@ -125,7 +118,7 @@ public class CentralCatalog {
       if(file != null && file.exists()) {
          return file;
       }
-      ArrayList<File> files = ZipUtil.extract(archiveUri, "extract-thumbnails/");
+      ArrayList<File> files = ZipUtil.extract(archiveUri, "extract-thumbnails/", false);
       try {
          for (File extractedFile : files) {
             if (extractedFile.isDirectory()) {
@@ -191,23 +184,24 @@ public class CentralCatalog {
       return categoryView;
    }
 
-   public void getBook(String categoryName, String bookName){
-         Book book = bookLookup.get(getBookKey(categoryName,bookName));
-         ArrayList<File> extractedFiles = ZipUtil.extract(book.TreeUri, "extract-book/");
+   public Observable<BookView> getBook(String categoryName, String bookName){
+      return Observable.fromCallable(()-> {
+         Book book = bookLookup.get(getBookKey(categoryName, bookName));
+         Util.clean("extract-book/");
+         ArrayList<File> extractedFiles = ZipUtil.extract(book.TreeUri, "extract-book/", true);
          BookView bookView = new BookView();
          bookView.Name = book.Name;
          bookView.TreeUi = book.TreeUri;
          try {
-            for(File file : extractedFiles){
-               if(file.isDirectory()){
+            for (File file : extractedFiles) {
+               if (file.isDirectory()) {
                   continue;
                }
                String entryName = file.getName();
-               if(entryName.endsWith(".xml") || entryName.endsWith(".txt")){
+               if (entryName.endsWith(".xml") || entryName.endsWith(".txt")) {
                   //TODO Parse text files for metadata
                   bookView.Info.put(entryName, null);
-               }
-               else {
+               } else {
                   bookView.Pages.put(entryName, file);
                   bookView.PageIds.add(entryName);
                }
@@ -218,9 +212,12 @@ public class CentralCatalog {
                   return o1.toLowerCase().compareTo(o2.toLowerCase());
                }
             });
-         }
-         catch (Exception e) {
+         } catch (Exception e) {
             Util.error(TAG, e);
          }
+         return bookView;
+      })
+        .subscribeOn(Schedulers.newThread())
+        .observeOn(AndroidSchedulers.mainThread());
    }
 }

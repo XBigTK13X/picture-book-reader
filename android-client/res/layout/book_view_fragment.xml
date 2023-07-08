@@ -6,7 +6,17 @@
     android:weightSum="10">
 
     <ImageView
-        android:id="@+id/current_page_image"
+        android:id="@+id/first_buffer_image"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="1"
+        android:adjustViewBounds="false"
+        android:background="@drawable/image_background"
+        android:cropToPadding="false"
+        android:scaleType="fitCenter" />
+
+    <ImageView
+        android:id="@+id/second_buffer_image"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_weight="1"

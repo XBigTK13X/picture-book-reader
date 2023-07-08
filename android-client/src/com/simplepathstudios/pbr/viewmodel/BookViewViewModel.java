@@ -15,8 +15,10 @@ public class BookViewViewModel extends ViewModel {
 
    public void load(String categoryName, String bookName){
       LoadingIndicator.setLoading(true);
-      CentralCatalog.getInstance().getBook(categoryName, bookName);
-      LoadingIndicator.setLoading(false);
+      CentralCatalog.getInstance().getBook(categoryName, bookName).doOnNext((bookView)->{
+         Data.setValue(bookView);
+         LoadingIndicator.setLoading(false);
+      }).subscribe();
    }
 
    public void nextPage(){

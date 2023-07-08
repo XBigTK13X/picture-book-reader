@@ -11,11 +11,13 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.simplepathstudios.pbr.MainActivity;
 import com.simplepathstudios.pbr.CentralCatalog;
 import com.simplepathstudios.pbr.R;
 import com.simplepathstudios.pbr.api.model.Book;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class BookAdapter extends RecyclerView.Adapter<BookAdapter.ViewHolder> {
@@ -38,8 +40,8 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.ViewHolder> {
    @Override
    public void onBindViewHolder(BookAdapter.ViewHolder holder, int position) {
       holder.book = this.data.get(position);
-      Bitmap thumbnail = CentralCatalog.getInstance().getBookThumbnail(holder.book.CategoryName, holder.book.Name);
-      holder.image.setImageBitmap(thumbnail);
+      File thumbnail = CentralCatalog.getInstance().getBookThumbnail(holder.book.CategoryName, holder.book.Name);
+      Glide.with(MainActivity.getInstance()).load(thumbnail).into(holder.image);
    }
 
    @Override

@@ -24,8 +24,11 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class ZipUtil {
    public static final String TAG = "ZipUtil";
-   public static ArrayList<File> extract(Uri documentTreeUri, String outputDir) {
+   public static ArrayList<File> extract(Uri documentTreeUri, String outputDir, boolean showProgress) {
       ArrayList<File> extractedFiles = new ArrayList<>();
+      if (showProgress){
+         LoadingIndicator.setLoadingMessage("Opening book...");
+      }
       return Observable.fromCallable(() -> {
             try {
                InputStream archiveStream = MainActivity.getInstance().getContentResolver().openInputStream(documentTreeUri);

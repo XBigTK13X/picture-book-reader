@@ -64,12 +64,13 @@ public class CategoryListFragment extends Fragment {
                     if(!CentralCatalog.getInstance().hasBooks()){
                         LoadingIndicator.setLoading(true);
                         CentralCatalog.getInstance().importLibrary(false).doOnComplete(()->{
-                            Util.log(TAG, "Generating view model");
                             viewModel.load();
                             LoadingIndicator.setLoading(false);
                         }).subscribe();
                     }
-
+                    else {
+                        viewModel.load();
+                    }
                 }
             }
         });
