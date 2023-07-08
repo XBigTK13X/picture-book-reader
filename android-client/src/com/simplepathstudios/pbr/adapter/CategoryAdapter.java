@@ -11,7 +11,7 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.simplepathstudios.pbr.MainActivity;
-import com.simplepathstudios.pbr.ObservableCatalog;
+import com.simplepathstudios.pbr.CentralCatalog;
 import com.simplepathstudios.pbr.R;
 import com.simplepathstudios.pbr.api.model.BookCategory;
 
@@ -45,7 +45,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
     public void onBindViewHolder(CategoryAdapter.ViewHolder holder, int position) {
         holder.category = this.data.get(position);
         TextView view = holder.textView;
-        view.setText(holder.category.Name+"\n("+ ObservableCatalog.getInstance().getBooks(holder.category.Name).Books.size()+")");
+        view.setText(holder.category.Name+"\n("+ CentralCatalog.getInstance().getBooks(holder.category.Name).Books.size()+")");
     }
 
     @Override

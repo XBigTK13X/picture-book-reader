@@ -6,7 +6,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.Nullable;
-import androidx.documentfile.provider.DocumentFile;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -14,17 +13,17 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.simplepathstudios.pbr.ObservableCatalog;
+import com.simplepathstudios.pbr.CentralCatalog;
+import com.simplepathstudios.pbr.LoadingIndicator;
 import com.simplepathstudios.pbr.MainActivity;
 import com.simplepathstudios.pbr.R;
 import com.simplepathstudios.pbr.Util;
 import com.simplepathstudios.pbr.adapter.CategoryAdapter;
-import com.simplepathstudios.pbr.api.model.Book;
 import com.simplepathstudios.pbr.api.model.CategoryList;
 import com.simplepathstudios.pbr.viewmodel.CategoryListViewModel;
 import com.simplepathstudios.pbr.viewmodel.SettingsViewModel;
 
-import java.util.ArrayList;
+import io.reactivex.rxjava3.functions.Consumer;
 
 public class CategoryListFragment extends Fragment {
     private final String TAG = "CategoryListFragment";
@@ -62,10 +61,15 @@ public class CategoryListFragment extends Fragment {
             @Override
             public void onChanged(SettingsViewModel.Settings settings) {
                 if(settings.LibraryDirectory != null){
-                    if(!ObservableCatalog.getInstance().hasBooks()){
-                        ObservableCatalog.getInstance().importLibrary();
+                    if(!CentralCatalog.getInstance().hasBooks()){
+                        LoadingIndicator.setLoading(true);
+                        CentralCatalog.getInstance().importLibrary(false).doOnComplete(()->{
+                            Util.log(TAG, "Generating view model");
+                            viewModel.load();
+                            LoadingIndicator.setLoading(false);
+                        }).subscribe();
                     }
-                    viewModel.load();
+
                 }
             }
         });

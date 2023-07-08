@@ -7,8 +7,13 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import org.apache.commons.io.FileUtils;
+
+import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -122,5 +127,16 @@ public class Util {
                 return false;
             }
         });
+    }
+
+    public static void clean(String outputDir){
+        Path absolutePath = Paths.get(MainActivity.getInstance().getFilesDir().getAbsolutePath(),outputDir);
+        File extractDirectory = new File(absolutePath.toString());
+        try {
+            FileUtils.deleteDirectory(extractDirectory);
+        }
+        catch(Exception e){
+            Util.error(TAG, e);
+        }
     }
 }

@@ -15,7 +15,6 @@ public class BookView {
    public ArrayList<String> PageIds;
    public HashMap<String, String> Info;
    public int CurrentPageIndex = 0;
-   private Bitmap currentPage;
 
    public BookView(){
       Pages = new HashMap<>();
@@ -23,24 +22,23 @@ public class BookView {
       PageIds = new ArrayList<>();
    }
 
-   public Bitmap gotoPage(int pageIndex){
+   public File gotoPage(int pageIndex){
       CurrentPageIndex = pageIndex;
-      File pageFile = Pages.get(PageIds.get(pageIndex));
-      if(currentPage != null){
-         currentPage.recycle();
-      }
-      currentPage = BitmapFactory.decodeFile(pageFile.getAbsolutePath());
-      return currentPage;
+      return Pages.get(PageIds.get(pageIndex));
    }
 
-   public Bitmap nextPage(){
+   public File getCurrentPage(){
+      return gotoPage(CurrentPageIndex);
+   }
+
+   public File nextPage(){
       if(CurrentPageIndex >= PageIds.size() - 1){
          return null;
       }
       return gotoPage(CurrentPageIndex + 1);
    }
 
-   public Bitmap previousPage(){
+   public File previousPage(){
       if(CurrentPageIndex < 0){
          return null;
       }
@@ -49,9 +47,5 @@ public class BookView {
 
    public int getPageCount(){
       return PageIds.size();
-   }
-
-   public Bitmap getCurrentPage(){
-      return gotoPage(CurrentPageIndex);
    }
 }

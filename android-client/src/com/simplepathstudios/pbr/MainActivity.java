@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -30,7 +31,6 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.navigation.NavigationView;
-import com.simplepathstudios.pbr.api.model.BookView;
 import com.simplepathstudios.pbr.viewmodel.BookViewViewModel;
 import com.simplepathstudios.pbr.viewmodel.SettingsViewModel;
 
@@ -54,7 +54,8 @@ public class MainActivity extends AppCompatActivity {
 
     private Toolbar toolbar;
     private DrawerLayout drawerLayout;
-    private ProgressBar loadingView;
+    private ProgressBar loadingProgress;
+    private TextView loadingText;
 
     private BookViewViewModel bookViewModel;
 
@@ -113,8 +114,10 @@ public class MainActivity extends AppCompatActivity {
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        loadingView = findViewById(R.id.loading_indicator);
-        LoadingIndicator.setProgressBar(loadingView);
+        loadingProgress = findViewById(R.id.loading_indicator);
+        LoadingIndicator.setProgressBar(loadingProgress);
+        loadingText = findViewById(R.id.loading_message);
+        LoadingIndicator.setLoadingTextView(loadingText);
 
         drawerLayout = findViewById(R.id.main_activity_drawer);
         mainLayout = findViewById(R.id.main_activity_layout);

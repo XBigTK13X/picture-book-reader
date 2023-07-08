@@ -2,7 +2,6 @@ package com.simplepathstudios.pbr.fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,8 +13,11 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.simplepathstudios.pbr.CentralCatalog;
+import com.simplepathstudios.pbr.LoadingIndicator;
 import com.simplepathstudios.pbr.R;
 import com.simplepathstudios.pbr.PBRSettings;
+import com.simplepathstudios.pbr.Util;
 import com.simplepathstudios.pbr.viewmodel.SettingsViewModel;
 
 public class OptionsFragment extends Fragment {
@@ -26,6 +28,8 @@ public class OptionsFragment extends Fragment {
     private TextView debugLogStatus;
     private Button updatePBRButton;
     private Button clearLibraryButton;
+    private Button scanLibraryButton;
+    private Button rescanLibraryButton;
     private TextView libraryText;
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
@@ -68,6 +72,28 @@ public class OptionsFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 settingsViewModel.setLibraryDirectory(null);
+            }
+        });
+
+        scanLibraryButton = view.findViewById(R.id.scan_library_button);
+        scanLibraryButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                LoadingIndicator.setLoading(true);
+                CentralCatalog.getInstance().importLibrary(false).doOnComplete(()->{
+                    LoadingIndicator.setLoading(false);
+                }).subscribe();;
+            }
+        });
+
+        rescanLibraryButton = view.findViewById(R.id.rescan_library_button);
+        rescanLibraryButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                LoadingIndicator.setLoading(true);
+                CentralCatalog.getInstance().importLibrary(true).doOnComplete(()->{
+                    LoadingIndicator.setLoading(false);
+                }).subscribe();
             }
         });
 

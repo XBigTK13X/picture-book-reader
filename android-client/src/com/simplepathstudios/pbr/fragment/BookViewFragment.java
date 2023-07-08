@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.bumptech.glide.Glide;
 import com.simplepathstudios.pbr.MainActivity;
 import com.simplepathstudios.pbr.R;
 import com.simplepathstudios.pbr.api.model.BookView;
@@ -44,7 +45,9 @@ public class BookViewFragment extends Fragment {
          @Override
          public void onChanged(BookView bookView) {
             book = bookView;
-            currentPage.setImageBitmap(book.getCurrentPage());
+            Glide.with(MainActivity.getInstance())
+               .load(book.getCurrentPage())
+               .into(currentPage);
             progress.setText("(" + (book.CurrentPageIndex + 1) + " / " + book.getPageCount() + ")");
          }
       });

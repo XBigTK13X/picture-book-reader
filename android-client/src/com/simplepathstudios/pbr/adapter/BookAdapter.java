@@ -6,14 +6,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.simplepathstudios.pbr.MainActivity;
-import com.simplepathstudios.pbr.ObservableCatalog;
+import com.simplepathstudios.pbr.CentralCatalog;
 import com.simplepathstudios.pbr.R;
 import com.simplepathstudios.pbr.api.model.Book;
 
@@ -39,7 +38,7 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.ViewHolder> {
    @Override
    public void onBindViewHolder(BookAdapter.ViewHolder holder, int position) {
       holder.book = this.data.get(position);
-      Bitmap thumbnail = ObservableCatalog.getInstance().getBookThumbnail(holder.book.CategoryName, holder.book.Name);
+      Bitmap thumbnail = CentralCatalog.getInstance().getBookThumbnail(holder.book.CategoryName, holder.book.Name);
       holder.image.setImageBitmap(thumbnail);
    }
 

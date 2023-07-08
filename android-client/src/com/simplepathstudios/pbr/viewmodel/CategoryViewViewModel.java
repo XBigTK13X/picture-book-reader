@@ -4,7 +4,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.simplepathstudios.pbr.LoadingIndicator;
-import com.simplepathstudios.pbr.ObservableCatalog;
+import com.simplepathstudios.pbr.CentralCatalog;
 import com.simplepathstudios.pbr.api.model.CategoryView;
 
 public class CategoryViewViewModel extends ViewModel {
@@ -15,7 +15,7 @@ public class CategoryViewViewModel extends ViewModel {
 
    public void load(String categoryName){
       LoadingIndicator.setLoading(true);
-      Data.setValue(ObservableCatalog.getInstance().getBooks(categoryName));
+      Data.setValue(CentralCatalog.getInstance().getBooks(categoryName));
       LoadingIndicator.setLoading(false);
    }
 }
