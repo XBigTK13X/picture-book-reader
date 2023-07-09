@@ -6,7 +6,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.StrictMode;
+import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -20,6 +22,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GestureDetectorCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.Observer;
@@ -59,12 +62,11 @@ public class MainActivity extends AppCompatActivity {
 
     private BookViewViewModel bookViewModel;
 
+    private int touchStartX = 0;
+    private int touchStartY = 0;
+
     public void setActionBarTitle(String title) {
         getSupportActionBar().setTitle(title);
-    }
-
-    public void setActionBarSubtitle(String subtitle) {
-        getSupportActionBar().setSubtitle(subtitle);
     }
 
     @Override
@@ -135,6 +137,11 @@ public class MainActivity extends AppCompatActivity {
                 getSupportActionBar().setSubtitle("");
                 CharSequence name = destination.getLabel();
                 currentLocation = destination;
+                if(name.toString().equals("Book")){
+                    toolbar.setVisibility(View.GONE);
+                } else {
+                    toolbar.setVisibility(View.VISIBLE);
+                }
                 if (arguments != null && arguments.size() > 0) {
                     String category = arguments.getString("Category");
                     if (category != null) {
@@ -164,27 +171,43 @@ public class MainActivity extends AppCompatActivity {
         drawerLayout.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                if(event.getAction() == MotionEvent.ACTION_DOWN) {
-                    if (currentLocation.getLabel().toString().equals("Book")) {
-                        int screenHalf = (int) (drawerLayout.getWidth() / 2);
+                if (currentLocation.getLabel().toString().equals("Book")) {
+                    int deltaX = ((int)event.getRawX()) - touchStartX;
+                    int deltaY = ((int)event.getRawY()) - touchStartY;
+                    if (event.getAction() == MotionEvent.ACTION_MOVE) {
+                        if(deltaY > 300 && Math.abs(deltaX) < 200){
+                            toolbar.setVisibility(View.VISIBLE);
+                        }
+                    }
+                    if (event.getAction() == MotionEvent.ACTION_UP) {
+                        if (deltaX > 200) {
+                            turnPageRight();
+                        }
+                        if (deltaX < -200) {
+                            turnPageLeft();
+                        }
+                        if(toolbar.getVisibility() == View.VISIBLE){
+                            Handler handler = new Handler();
+                            handler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    toolbar.setVisibility(View.GONE);
+                                }
+                            }, 1500);
+                        }
+                    }
+                    if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                        touchStartX = (int) event.getRawX();
+                        touchStartY = (int) event.getRawY();
+                        /*int screenHalf = (drawerLayout.getWidth() / 2);
                         int x = (int) event.getRawX();
                         int y = (int) event.getRawY();
                         if (x > screenHalf) {
-                            if(bookViewModel.isLastPage()){
-                                Util.toast("Finished "+bookViewModel.Data.getValue().Name);
-                                navController.navigateUp();
-                            } else {
-                                bookViewModel.nextPage();
-                            }
+                            turnPageLeft();
                         }
                         if (x < screenHalf) {
-                            if(bookViewModel.isFirstPage()){
-                                Util.toast("Leaving "+bookViewModel.Data.getValue().Name);
-                                navController.navigateUp();
-                            } else {
-                                bookViewModel.previousPage();
-                            }
-                        }
+                            turnPageRight();
+                        }*/
                     }
                 }
                 // Hide the keyboard if touch event outside keyboard (better search experience)
@@ -201,6 +224,24 @@ public class MainActivity extends AppCompatActivity {
 
         mainLayout.setVisibility(View.VISIBLE);
         navigationView.setVisibility(View.VISIBLE);
+    }
+
+    private void turnPageLeft(){
+        if(bookViewModel.isLastPage()){
+            Util.toast("Finished "+bookViewModel.Data.getValue().Name);
+            navController.navigateUp();
+        } else {
+            bookViewModel.nextPage();
+        }
+    }
+
+    private void turnPageRight(){
+        if(bookViewModel.isFirstPage()){
+            Util.toast("Leaving "+bookViewModel.Data.getValue().Name);
+            navController.navigateUp();
+        } else {
+            bookViewModel.previousPage();
+        }
     }
 
     @Override

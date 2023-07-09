@@ -1,6 +1,5 @@
 package com.simplepathstudios.pbr;
 
-import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -14,22 +13,15 @@ import com.simplepathstudios.pbr.api.model.BookView;
 import com.simplepathstudios.pbr.api.model.CategoryList;
 import com.simplepathstudios.pbr.api.model.CategoryView;
 
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.functions.Consumer;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 
 public class CentralCatalog {
@@ -42,27 +34,14 @@ public class CentralCatalog {
       }
       return __instance;
    }
-   private ArrayList<Observer<CentralCatalog>> observers;
    private HashMap<String, ArrayList<Book>> categoriesLookup;
    private ArrayList<BookCategory> categoriesList;
    private HashMap<String, Book> bookLookup;
 
    private CentralCatalog(){
-      this.observers = new ArrayList<>();
       this.categoriesLookup = new HashMap<>();
       this.categoriesList = new ArrayList<>();
       this.bookLookup = new HashMap<>();
-   }
-
-   public void observe(Observer<CentralCatalog> observer){
-      observers.add(observer);
-      observer.onChanged(this);
-   }
-
-   private void notifyObservers(){
-      for(Observer<CentralCatalog> observer: observers) {
-         observer.onChanged(this);
-      }
    }
 
    public Observable<Boolean> importLibrary(boolean force){
@@ -88,7 +67,7 @@ public class CentralCatalog {
             DocumentFile[] books = category.listFiles();
             ArrayList<Book> parsedBooks = new ArrayList<Book>();
             for(DocumentFile bookFile : books){
-               String loadingMessage = "(" + (++bookIndex) + "/" + bookCount + ") Generating thumbnail for [" + bookFile.getName() + "]";
+                 String loadingMessage = "(" + (++bookIndex) + "/" + bookCount + ") Generating thumbnail for [" + bookFile.getName() + "]";
                  LoadingIndicator.setLoadingMessage(loadingMessage);
                  Book book = new Book();
                  book.TreeUri = bookFile.getUri();
@@ -106,16 +85,16 @@ public class CentralCatalog {
    }
 
    public File getBookThumbnail(String category, String book) {
-      return getThumbnail(getBookKey(category, book));
+      return getThumbnailLocation(getBookKey(category, book));
    }
 
-   private File getThumbnail(String bookKey){
+   private File getThumbnailLocation(String bookKey){
       return new File(Paths.get(MainActivity.getInstance().getFilesDir().getAbsolutePath(), "thumbnails", bookKey+".jpeg").toString());
    }
 
    public File generateThumbnail(String bookKey, Uri archiveUri){
-      File file = getThumbnail(bookKey);
-      if(file != null && file.exists()) {
+      File file = getThumbnailLocation(bookKey);
+      if(file.exists()) {
          return file;
       }
       ArrayList<File> files = ZipUtil.extract(archiveUri, "extract-thumbnails/", false);
@@ -129,7 +108,7 @@ public class CentralCatalog {
                Bitmap bitmap = BitmapFactory.decodeFile(extractedFile.getAbsolutePath());
                if (bitmap != null) {
                   Bitmap thumbnail = Bitmap.createScaledBitmap(bitmap, 500, 500, true);
-                  File thumbnailFile = getThumbnail(bookKey);
+                  File thumbnailFile = getThumbnailLocation(bookKey);
                   thumbnailFile.getParentFile().mkdirs();
                   FileOutputStream thumbnailStream = new FileOutputStream(thumbnailFile);
                   thumbnail.compress(Bitmap.CompressFormat.JPEG, 95, thumbnailStream);
@@ -165,7 +144,6 @@ public class CentralCatalog {
       for(Book book : books){
          bookLookup.put(getBookKey(name, book.Name), book);
       }
-      notifyObservers();
    }
 
    public CategoryList getCategories(){
