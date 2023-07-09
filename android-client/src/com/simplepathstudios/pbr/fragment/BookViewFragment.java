@@ -23,15 +23,10 @@ import com.simplepathstudios.pbr.viewmodel.BookViewViewModel;
 public class BookViewFragment extends Fragment {
    private static final String TAG = "BookViewFragment";
    private ImageView firstBufferImage;
-   private ImageView secondBufferImage;
-   private Bitmap firstBuffer;
-   private Bitmap secondBuffer;
    private TextView progress;
    private BookViewViewModel bookViewModel;
    private String categoryName;
    private String bookName;
-   private BookView book;
-   private ImageView currentBufferImage;
 
    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
       categoryName = getArguments().getString("CategoryName");
@@ -44,9 +39,6 @@ public class BookViewFragment extends Fragment {
    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
       super.onViewCreated(view, savedInstanceState);
       firstBufferImage = view.findViewById(R.id.first_buffer_image);
-      secondBufferImage = view.findViewById(R.id.second_buffer_image);
-      secondBufferImage.setVisibility(View.GONE);
-      currentBufferImage = firstBufferImage;
       progress = view.findViewById(R.id.progress_text);
       progress.setText("(0/0)");
       bookViewModel = new ViewModelProvider(MainActivity.getInstance()).get(BookViewViewModel.class);
