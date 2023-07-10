@@ -83,6 +83,10 @@ public class MainActivity extends AppCompatActivity {
         navController.navigateUp();
     }
 
+    public boolean isCurrentLocation(String locationName){
+        return currentLocation.getDisplayName() == locationName;
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode,
                                  Intent resultData) {

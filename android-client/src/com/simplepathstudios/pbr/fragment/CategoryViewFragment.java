@@ -37,7 +37,6 @@ public class CategoryViewFragment extends Fragment {
    @Override
    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
       categoryName = getArguments().getString("CategoryName");
-      MainActivity.getInstance().setActionBarTitle("Category | "+categoryName);
       return inflater.inflate(R.layout.category_view_fragment, container, false);
    }
 
@@ -53,6 +52,7 @@ public class CategoryViewFragment extends Fragment {
       categoryViewModel.Data.observe(getViewLifecycleOwner(), new Observer<CategoryView>() {
          @Override
          public void onChanged(CategoryView categoryView) {
+            MainActivity.getInstance().setActionBarTitle("Category | "+categoryName + " (" + categoryView.Books.size() + ")");
             adapter.setData(categoryView.Books);
             adapter.notifyDataSetChanged();
          }

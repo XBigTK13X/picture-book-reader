@@ -15,6 +15,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.simplepathstudios.pbr.CentralCatalog;
 import com.simplepathstudios.pbr.LoadingIndicator;
+import com.simplepathstudios.pbr.MainActivity;
 import com.simplepathstudios.pbr.R;
 import com.simplepathstudios.pbr.PBRSettings;
 import com.simplepathstudios.pbr.Util;
@@ -80,7 +81,9 @@ public class OptionsFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 LoadingIndicator.setLoading(true);
-                CentralCatalog.getInstance().importLibrary(false).doOnComplete(()->{
+                MainActivity.getInstance().toolbarHide();
+                CentralCatalog.getInstance().importLibrary(false, true).doOnComplete(()->{
+                    MainActivity.getInstance().toolbarShow();
                     LoadingIndicator.setLoading(false);
                 }).subscribe();;
             }
@@ -90,8 +93,10 @@ public class OptionsFragment extends Fragment {
         rescanLibraryButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                MainActivity.getInstance().toolbarHide();
                 LoadingIndicator.setLoading(true);
-                CentralCatalog.getInstance().importLibrary(true).doOnComplete(()->{
+                CentralCatalog.getInstance().importLibrary(true, false).doOnComplete(()->{
+                    MainActivity.getInstance().toolbarShow();
                     LoadingIndicator.setLoading(false);
                 }).subscribe();
             }

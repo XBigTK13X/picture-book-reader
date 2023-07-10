@@ -4,8 +4,11 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.Toast;
 
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
@@ -90,8 +93,13 @@ public class Util {
         if(lastToast != null){
             lastToast.cancel();
         }
-        lastToast = Toast.makeText(getGlobalContext(), message, Toast.LENGTH_SHORT);
-        lastToast.show();
+        new Handler(Looper.getMainLooper()).post(new Runnable(){
+            @Override
+            public void run() {
+                lastToast = Toast.makeText(getGlobalContext(), message, Toast.LENGTH_SHORT);
+                lastToast.show();
+            }
+        });
     }
 
     public static void registerGlobalExceptionHandler() {

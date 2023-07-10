@@ -63,7 +63,7 @@ public class CategoryListFragment extends Fragment {
                 if(settings.LibraryDirectory != null){
                     if(!CentralCatalog.getInstance().hasBooks()){
                         LoadingIndicator.setLoading(true);
-                        CentralCatalog.getInstance().importLibrary(false).doOnComplete(()->{
+                        CentralCatalog.getInstance().importLibrary(false, false).doOnComplete(()->{
                             viewModel.load();
                             LoadingIndicator.setLoading(false);
                         }).subscribe();

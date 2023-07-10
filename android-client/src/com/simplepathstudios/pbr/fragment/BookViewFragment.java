@@ -67,6 +67,7 @@ public class BookViewFragment extends Fragment {
                   if (lastTouchTime != -1) {
                      if (currentTime - lastTouchTime < PBRSettings.DoubleTapThreshold) {
                         bookViewModel.setZoomScale(1.0f);
+                        MainActivity.getInstance().toolbarHide();
                      }
                   }
                   lastTouchTime = currentTime;
@@ -91,7 +92,9 @@ public class BookViewFragment extends Fragment {
                         handler.postDelayed(new Runnable() {
                            @Override
                            public void run() {
-                              MainActivity.getInstance().toolbarHide();
+                              if(MainActivity.getInstance().isCurrentLocation("Book")){
+                                 MainActivity.getInstance().toolbarHide();
+                              }
                            }
                         }, PBRSettings.ShowToolbarMilliseconds);
                      }

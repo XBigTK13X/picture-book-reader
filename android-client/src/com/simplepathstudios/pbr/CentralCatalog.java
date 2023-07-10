@@ -52,8 +52,8 @@ public class CentralCatalog {
       this.cachedCatalogFile = new File(Paths.get(MainActivity.getInstance().getFilesDir().getAbsolutePath(),"data/","catalog.json").toString());
    }
 
-   public Observable<Boolean> importLibrary(boolean force){
-      if(force){
+   public Observable<Boolean> importLibrary(boolean cleanScan, boolean additiveScan){
+      if(cleanScan){
          Util.clean("thumbnails/");
          Util.clean("extract-thumbnails/");
          Util.clean("extract-book/");
@@ -61,7 +61,7 @@ public class CentralCatalog {
       }
       else {
          try {
-            if (cachedCatalogFile.exists()) {
+            if (!additiveScan && cachedCatalogFile.exists()) {
                LoadingIndicator.setLoading(false);
                BufferedReader fileReader = new BufferedReader(new FileReader(cachedCatalogFile));
                Gson gson = new Gson();
@@ -79,7 +79,9 @@ public class CentralCatalog {
          }
       }
       DocumentFile libraryRoot = DocumentFile.fromTreeUri(MainActivity.getInstance(), PBRSettings.LibraryDirectory);
-
+      this.categoriesLookup = new HashMap<>();
+      this.categoriesList = new ArrayList<>();
+      this.bookLookup = new HashMap<>();
       return Observable.fromCallable(()->{
          int bookIndex = 0;
          int bookCount = 0;
@@ -95,7 +97,7 @@ public class CentralCatalog {
             DocumentFile[] books = category.listFiles();
             ArrayList<Book> parsedBooks = new ArrayList<Book>();
             for(DocumentFile bookFile : books){
-                 String loadingMessage = "(" + (++bookIndex) + "/" + bookCount + ") Generating thumbnail for [" + bookFile.getName() + "]";
+                 String loadingMessage = "(" + (++bookIndex) + "/" + bookCount + ") Generating thumbnail for\n[" + bookFile.getName() + "]";
                  LoadingIndicator.setLoadingMessage(loadingMessage);
                  Book book = new Book();
                  book.TreeUri = bookFile.getUri().toString();
@@ -112,6 +114,7 @@ public class CentralCatalog {
          BufferedWriter fileWriter = new BufferedWriter(new OutputStreamWriter(writeStream));
          gson.toJson(this, CentralCatalog.class, fileWriter);
          fileWriter.close();
+         Util.toast("Library import complete. Found " + bookCount + " books");
          return true;
       })
         .subscribeOn(Schedulers.newThread())
