@@ -62,12 +62,25 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar loadingProgress;
     private TextView loadingText;
 
-    private BookViewViewModel bookViewModel;
-
-
 
     public void setActionBarTitle(String title) {
         getSupportActionBar().setTitle(title);
+    }
+
+    public boolean toolbarIsVisible(){
+        return toolbar.getVisibility() == View.VISIBLE;
+    }
+
+    public void toolbarShow(){
+        toolbar.setVisibility(View.VISIBLE);
+    }
+
+    public void toolbarHide(){
+        toolbar.setVisibility(View.GONE);
+    }
+
+    public void navigateUp(){
+        navController.navigateUp();
     }
 
     @Override
@@ -167,7 +180,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        bookViewModel = new ViewModelProvider(this).get(BookViewViewModel.class);
         drawerLayout.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {

@@ -7,14 +7,20 @@ import android.net.Uri;
 import androidx.documentfile.provider.DocumentFile;
 import androidx.lifecycle.Observer;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.simplepathstudios.pbr.api.model.Book;
 import com.simplepathstudios.pbr.api.model.BookCategory;
 import com.simplepathstudios.pbr.api.model.BookView;
 import com.simplepathstudios.pbr.api.model.CategoryList;
 import com.simplepathstudios.pbr.api.model.CategoryView;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.OutputStreamWriter;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -37,11 +43,13 @@ public class CentralCatalog {
    private HashMap<String, ArrayList<Book>> categoriesLookup;
    private ArrayList<BookCategory> categoriesList;
    private HashMap<String, Book> bookLookup;
+   private File cachedCatalogFile;
 
    private CentralCatalog(){
       this.categoriesLookup = new HashMap<>();
       this.categoriesList = new ArrayList<>();
       this.bookLookup = new HashMap<>();
+      this.cachedCatalogFile = new File(Paths.get(MainActivity.getInstance().getFilesDir().getAbsolutePath(),"data/","catalog.json").toString());
    }
 
    public Observable<Boolean> importLibrary(boolean force){
@@ -49,6 +57,26 @@ public class CentralCatalog {
          Util.clean("thumbnails/");
          Util.clean("extract-thumbnails/");
          Util.clean("extract-book/");
+         Util.clean("data/");
+      }
+      else {
+         try {
+            if (cachedCatalogFile.exists()) {
+               LoadingIndicator.setLoading(false);
+               BufferedReader fileReader = new BufferedReader(new FileReader(cachedCatalogFile));
+               Gson gson = new Gson();
+               CentralCatalog cachedCatalog = gson.fromJson(fileReader, CentralCatalog.class);
+               categoriesList = cachedCatalog.categoriesList;
+               categoriesLookup = cachedCatalog.categoriesLookup;
+               bookLookup = cachedCatalog.bookLookup;
+               return Observable.fromCallable(()->{
+                  return true;
+               });
+            }
+         }
+         catch(Throwable t){
+            Util.error(TAG, t);
+         }
       }
       DocumentFile libraryRoot = DocumentFile.fromTreeUri(MainActivity.getInstance(), PBRSettings.LibraryDirectory);
 
@@ -70,7 +98,7 @@ public class CentralCatalog {
                  String loadingMessage = "(" + (++bookIndex) + "/" + bookCount + ") Generating thumbnail for [" + bookFile.getName() + "]";
                  LoadingIndicator.setLoadingMessage(loadingMessage);
                  Book book = new Book();
-                 book.TreeUri = bookFile.getUri();
+                 book.TreeUri = bookFile.getUri().toString();
                  book.Name = bookFile.getName();
                  book.CategoryName = category.getName();
                  parsedBooks.add(book);
@@ -78,6 +106,12 @@ public class CentralCatalog {
             };
             CentralCatalog.getInstance().addCategory(category.getName(), parsedBooks);
            }
+         cachedCatalogFile.getParentFile().mkdirs();
+         Gson gson = new GsonBuilder().setPrettyPrinting().create();
+         FileOutputStream writeStream = new FileOutputStream(cachedCatalogFile);
+         BufferedWriter fileWriter = new BufferedWriter(new OutputStreamWriter(writeStream));
+         gson.toJson(this, CentralCatalog.class, fileWriter);
+         fileWriter.close();
          return true;
       })
         .subscribeOn(Schedulers.newThread())
@@ -92,7 +126,7 @@ public class CentralCatalog {
       return new File(Paths.get(MainActivity.getInstance().getFilesDir().getAbsolutePath(), "thumbnails", bookKey+".jpeg").toString());
    }
 
-   public File generateThumbnail(String bookKey, Uri archiveUri){
+   public File generateThumbnail(String bookKey, String archiveUri){
       File file = getThumbnailLocation(bookKey);
       if(file.exists()) {
          return file;

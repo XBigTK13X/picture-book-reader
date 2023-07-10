@@ -21,7 +21,7 @@ import com.simplepathstudios.pbr.viewmodel.CategoryViewViewModel;
 
 public class CategoryViewFragment extends Fragment {
    private final String TAG = "CategoryViewFragment";
-   private final int COLUMNS = 8;
+   private final int COLUMNS = 5;
 
    private CategoryViewViewModel categoryViewModel;
    private String categoryName;

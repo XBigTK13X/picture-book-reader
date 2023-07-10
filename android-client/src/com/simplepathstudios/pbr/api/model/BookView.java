@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class BookView {
-   public Uri TreeUi;
+   public String TreeUi;
    public String Name;
    public HashMap<String, File> Pages;
    public ArrayList<String> PageIds;

@@ -153,14 +153,14 @@ public class Util {
         }
     }
 
-    public static ArrayList<File> extractArchive(Uri documentTreeUri, String outputDir, boolean showProgress) {
+    public static ArrayList<File> extractArchive(String documentTreeUri, String outputDir, boolean showProgress) {
         ArrayList<File> extractedFiles = new ArrayList<>();
         if (showProgress){
             LoadingIndicator.setLoadingMessage("Opening book...");
         }
         return Observable.fromCallable(() -> {
                     try {
-                        InputStream archiveStream = MainActivity.getInstance().getContentResolver().openInputStream(documentTreeUri);
+                        InputStream archiveStream = MainActivity.getInstance().getContentResolver().openInputStream(Uri.parse(documentTreeUri));
                         LocalFileHeader localFileHeader;
                         int readLen;
                         byte[] readBuffer = new byte[4096];

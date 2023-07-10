@@ -34,6 +34,8 @@ public class BookViewFragment extends Fragment {
    private File currentPage;
    private int touchStartX = 0;
    private int touchStartY = 0;
+   private boolean multiTouchHappening = false;
+   private long lastTouchTime = -1;
 
    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
       categoryName = getArguments().getString("CategoryName");
@@ -45,58 +47,79 @@ public class BookViewFragment extends Fragment {
    @Override
    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
       super.onViewCreated(view, savedInstanceState);
+      bookViewModel = new ViewModelProvider(MainActivity.getInstance()).get(BookViewViewModel.class);
       firstBufferImage = view.findViewById(R.id.current_page_image);
       firstBufferImage.setOnTouchListener(new View.OnTouchListener() {
          @Override
          public boolean onTouch(View v, MotionEvent event) {
             int action = event.getActionMasked();
-            if(firstBufferImage.getZoom() < PBRSettings.PageTurnZoomThreshold) {
-               int deltaX = ((int) event.getRawX()) - touchStartX;
-               int deltaY = ((int) event.getRawY()) - touchStartY;
-               if (action == MotionEvent.ACTION_MOVE) {
-                  if (deltaY > PBRSettings.SwipeThresholdY && Math.abs(deltaX) < PBRSettings.SwipeThresholdX) {
-                     //toolbar.setVisibility(View.VISIBLE);
-                  }
+            if(multiTouchHappening){
+               if(action == MotionEvent.ACTION_UP && event.getPointerCount() <= 1){
+                  multiTouchHappening = false;
                }
-               if (action == MotionEvent.ACTION_UP) {
-                  if (deltaX > PBRSettings.SwipeThresholdX) {
-                     turnPageRight();
+            }
+            if(event.getPointerCount() > 1 && !multiTouchHappening){
+               multiTouchHappening = true;
+            }
+            if(!multiTouchHappening) {
+               if(event.getPointerCount() == 1 && action == MotionEvent.ACTION_DOWN) {
+                  long currentTime = System.currentTimeMillis();
+                  if (lastTouchTime != -1) {
+                     if (currentTime - lastTouchTime < PBRSettings.DoubleTapThreshold) {
+                        bookViewModel.setZoomScale(1.0f);
+                     }
                   }
-                  if (deltaX < -PBRSettings.SwipeThresholdX) {
-                     turnPageLeft();
+                  lastTouchTime = currentTime;
+               }
+               if (firstBufferImage.getZoom() < PBRSettings.PageTurnZoomThreshold) {
+                  int deltaX = ((int) event.getRawX()) - touchStartX;
+                  int deltaY = ((int) event.getRawY()) - touchStartY;
+                  if (action == MotionEvent.ACTION_MOVE) {
+                     if (deltaY > PBRSettings.SwipeThresholdY && Math.abs(deltaX) < PBRSettings.SwipeThresholdX) {
+                        MainActivity.getInstance().toolbarShow();
+                     }
                   }
-                     /*if(toolbar.getVisibility() == View.VISIBLE){
+                  if (action == MotionEvent.ACTION_UP) {
+                     if (deltaX > PBRSettings.SwipeThresholdX) {
+                        turnPageRight();
+                     }
+                     if (deltaX < -PBRSettings.SwipeThresholdX) {
+                        turnPageLeft();
+                     }
+                     if (MainActivity.getInstance().toolbarIsVisible()) {
                         Handler handler = new Handler();
                         handler.postDelayed(new Runnable() {
                            @Override
                            public void run() {
-                              //toolbar.setVisibility(View.GONE);
+                              MainActivity.getInstance().toolbarHide();
                            }
                         }, PBRSettings.ShowToolbarMilliseconds);
-                     }*/
-               }
-               if (action == MotionEvent.ACTION_DOWN) {
-                  touchStartX = (int) event.getRawX();
-                  touchStartY = (int) event.getRawY();
+                     }
+                  }
+                  if (action == MotionEvent.ACTION_DOWN) {
+                     touchStartX = (int) event.getRawX();
+                     touchStartY = (int) event.getRawY();
+                  }
                }
             }
             return false;
          }
       });
-      bookViewModel = new ViewModelProvider(MainActivity.getInstance()).get(BookViewViewModel.class);
+
       bookViewModel.Data.observe(getViewLifecycleOwner(), new Observer<BookView>() {
          @Override
          public void onChanged(BookView bookView) {
             File page = bookView.getCurrentPage();
-            if(currentPage != page){
-               firstBufferImage.zoomBy(1.0f, false);
+            if(currentPage == null || !currentPage.getAbsoluteFile().equals(page.getAbsoluteFile())){
+               bookView.ZoomScale = 1.0f;
+               firstBufferImage.zoomTo(1.0f, false);
                Glide.with(MainActivity.getInstance())
                     .load(page.getAbsolutePath())
                        .into(firstBufferImage);
                MainActivity.getInstance().setActionBarTitle(String.format("(%d / %d) %s", bookView.CurrentPageIndex + 1, bookView.getPageCount(), bookName));
                currentPage = page;
             } else {
-               firstBufferImage.zoomBy(bookView.ZoomScale, false);
+               firstBufferImage.zoomTo(bookView.ZoomScale, false);
             }
          }
       });
@@ -106,7 +129,7 @@ public class BookViewFragment extends Fragment {
    private void turnPageLeft(){
       if(bookViewModel.isLastPage()){
          Util.toast("Finished "+bookViewModel.Data.getValue().Name);
-         //navController.navigateUp();
+         MainActivity.getInstance().navigateUp();
       } else {
          bookViewModel.nextPage();
       }
@@ -115,7 +138,7 @@ public class BookViewFragment extends Fragment {
    private void turnPageRight(){
       if(bookViewModel.isFirstPage()){
          Util.toast("Leaving "+bookViewModel.Data.getValue().Name);
-         //navController.navigateUp();
+         MainActivity.getInstance().navigateUp();
       } else {
          bookViewModel.previousPage();
       }

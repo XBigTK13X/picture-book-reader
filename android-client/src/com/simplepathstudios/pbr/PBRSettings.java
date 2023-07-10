@@ -14,4 +14,5 @@ public class PBRSettings {
     public static int SwipeThresholdY = 300;
     public static int ShowToolbarMilliseconds = 2000;
     public static float PageTurnZoomThreshold = 1.5f;
+    public static float DoubleTapThreshold = 300;
 }
