@@ -42,4 +42,10 @@ public class BookViewViewModel extends ViewModel {
       BookView bookView = Data.getValue();
       return bookView.CurrentPageIndex >= bookView.Pages.size() - 1;
    }
+
+   public void setZoomScale(float scale){
+      BookView bookView = Data.getValue();
+      bookView.ZoomScale = scale;
+      Data.setValue(bookView);
+   }
 }

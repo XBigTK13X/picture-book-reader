@@ -2,6 +2,7 @@ package com.simplepathstudios.pbr.fragment;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -23,6 +24,7 @@ public class BookViewFragment extends Fragment {
    private BookViewViewModel bookViewModel;
    private String categoryName;
    private String bookName;
+
 
    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
       categoryName = getArguments().getString("CategoryName");
@@ -47,4 +49,7 @@ public class BookViewFragment extends Fragment {
       });
       bookViewModel.load(categoryName, bookName);
    }
+
+
+
 }

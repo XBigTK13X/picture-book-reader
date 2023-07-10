@@ -97,7 +97,7 @@ public class CentralCatalog {
       if(file.exists()) {
          return file;
       }
-      ArrayList<File> files = ZipUtil.extract(archiveUri, "extract-thumbnails/", false);
+      ArrayList<File> files = Util.extractArchive(archiveUri, "extract-thumbnails/", false);
       try {
          for (File extractedFile : files) {
             if (extractedFile.isDirectory()) {
@@ -166,7 +166,7 @@ public class CentralCatalog {
       return Observable.fromCallable(()-> {
          Book book = bookLookup.get(getBookKey(categoryName, bookName));
          Util.clean("extract-book/");
-         ArrayList<File> extractedFiles = ZipUtil.extract(book.TreeUri, "extract-book/", true);
+         ArrayList<File> extractedFiles = Util.extractArchive(book.TreeUri, "extract-book/", true);
          BookView bookView = new BookView();
          bookView.Name = book.Name;
          bookView.TreeUi = book.TreeUri;

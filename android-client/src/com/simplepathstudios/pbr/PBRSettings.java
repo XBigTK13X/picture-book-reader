@@ -10,4 +10,7 @@ public class PBRSettings {
     public static Uri UpdatePBRUrl = Uri.parse("http://9914.us/software/android/picture-book-reader.apk");
     public static boolean DebugResourceLeaks = false;
     public static Uri LibraryDirectory = null;
+    public static int SwipeThresholdX = 200;
+    public static int SwipeThresholdY = 300;
+    public static int ShowToolbarMilliseconds = 2000;
 }

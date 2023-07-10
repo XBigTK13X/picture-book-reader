@@ -12,6 +12,7 @@ import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.LinearLayout;
@@ -24,6 +25,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GestureDetectorCompat;
 import androidx.core.view.GravityCompat;
+import androidx.core.view.MotionEventCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -168,46 +170,43 @@ public class MainActivity extends AppCompatActivity {
 
         bookViewModel = new ViewModelProvider(this).get(BookViewViewModel.class);
 
+        scaleDetector = new ScaleGestureDetector(this, new ScaleListener());
+
         drawerLayout.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                if (currentLocation.getLabel().toString().equals("Book")) {
-                    int deltaX = ((int)event.getRawX()) - touchStartX;
-                    int deltaY = ((int)event.getRawY()) - touchStartY;
-                    if (event.getAction() == MotionEvent.ACTION_MOVE) {
-                        if(deltaY > 300 && Math.abs(deltaX) < 200){
-                            toolbar.setVisibility(View.VISIBLE);
+                int action = event.getActionMasked();
+                scaleDetector.onTouchEvent(event);
+                if(event.getPointerCount() <= 1){
+                    if (currentLocation.getLabel().toString().equals("Book")) {
+                        int deltaX = ((int)event.getRawX()) - touchStartX;
+                        int deltaY = ((int)event.getRawY()) - touchStartY;
+                        if (action == MotionEvent.ACTION_MOVE) {
+                            if(deltaY > PBRSettings.SwipeThresholdY && Math.abs(deltaX) < PBRSettings.SwipeThresholdX){
+                                toolbar.setVisibility(View.VISIBLE);
+                            }
                         }
-                    }
-                    if (event.getAction() == MotionEvent.ACTION_UP) {
-                        if (deltaX > 200) {
-                            turnPageRight();
+                        if (action == MotionEvent.ACTION_UP) {
+                            if (deltaX > PBRSettings.SwipeThresholdX) {
+                                turnPageRight();
+                            }
+                            if (deltaX < -PBRSettings.SwipeThresholdX) {
+                                turnPageLeft();
+                            }
+                            if(toolbar.getVisibility() == View.VISIBLE){
+                                Handler handler = new Handler();
+                                handler.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        toolbar.setVisibility(View.GONE);
+                                    }
+                                }, PBRSettings.ShowToolbarMilliseconds);
+                            }
                         }
-                        if (deltaX < -200) {
-                            turnPageLeft();
+                        if (action == MotionEvent.ACTION_DOWN) {
+                            touchStartX = (int) event.getRawX();
+                            touchStartY = (int) event.getRawY();
                         }
-                        if(toolbar.getVisibility() == View.VISIBLE){
-                            Handler handler = new Handler();
-                            handler.postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    toolbar.setVisibility(View.GONE);
-                                }
-                            }, 1500);
-                        }
-                    }
-                    if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                        touchStartX = (int) event.getRawX();
-                        touchStartY = (int) event.getRawY();
-                        /*int screenHalf = (drawerLayout.getWidth() / 2);
-                        int x = (int) event.getRawX();
-                        int y = (int) event.getRawY();
-                        if (x > screenHalf) {
-                            turnPageLeft();
-                        }
-                        if (x < screenHalf) {
-                            turnPageRight();
-                        }*/
                     }
                 }
                 // Hide the keyboard if touch event outside keyboard (better search experience)
@@ -224,6 +223,22 @@ public class MainActivity extends AppCompatActivity {
 
         mainLayout.setVisibility(View.VISIBLE);
         navigationView.setVisibility(View.VISIBLE);
+    }
+
+    private float scaleFactor = 1.0f;
+    private ScaleGestureDetector scaleDetector;
+
+    private class ScaleListener
+            extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+            Util.log(TAG, "Scale factor "+scaleFactor);
+            scaleFactor *= detector.getScaleFactor();
+
+            scaleFactor = Math.max(0.1f, Math.min(scaleFactor, 5.0f));
+            bookViewModel.setZoomScale(scaleFactor);
+            return true;
+        }
     }
 
     private void turnPageLeft(){
