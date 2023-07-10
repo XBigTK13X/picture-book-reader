@@ -64,8 +64,7 @@ public class MainActivity extends AppCompatActivity {
 
     private BookViewViewModel bookViewModel;
 
-    private int touchStartX = 0;
-    private int touchStartY = 0;
+
 
     public void setActionBarTitle(String title) {
         getSupportActionBar().setTitle(title);
@@ -169,46 +168,9 @@ public class MainActivity extends AppCompatActivity {
         });
 
         bookViewModel = new ViewModelProvider(this).get(BookViewViewModel.class);
-
-        scaleDetector = new ScaleGestureDetector(this, new ScaleListener());
-
         drawerLayout.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                int action = event.getActionMasked();
-                scaleDetector.onTouchEvent(event);
-                if(event.getPointerCount() <= 1){
-                    if (currentLocation.getLabel().toString().equals("Book")) {
-                        int deltaX = ((int)event.getRawX()) - touchStartX;
-                        int deltaY = ((int)event.getRawY()) - touchStartY;
-                        if (action == MotionEvent.ACTION_MOVE) {
-                            if(deltaY > PBRSettings.SwipeThresholdY && Math.abs(deltaX) < PBRSettings.SwipeThresholdX){
-                                toolbar.setVisibility(View.VISIBLE);
-                            }
-                        }
-                        if (action == MotionEvent.ACTION_UP) {
-                            if (deltaX > PBRSettings.SwipeThresholdX) {
-                                turnPageRight();
-                            }
-                            if (deltaX < -PBRSettings.SwipeThresholdX) {
-                                turnPageLeft();
-                            }
-                            if(toolbar.getVisibility() == View.VISIBLE){
-                                Handler handler = new Handler();
-                                handler.postDelayed(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        toolbar.setVisibility(View.GONE);
-                                    }
-                                }, PBRSettings.ShowToolbarMilliseconds);
-                            }
-                        }
-                        if (action == MotionEvent.ACTION_DOWN) {
-                            touchStartX = (int) event.getRawX();
-                            touchStartY = (int) event.getRawY();
-                        }
-                    }
-                }
                 // Hide the keyboard if touch event outside keyboard (better search experience)
                 InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
                 if (imm != null) {
@@ -223,40 +185,6 @@ public class MainActivity extends AppCompatActivity {
 
         mainLayout.setVisibility(View.VISIBLE);
         navigationView.setVisibility(View.VISIBLE);
-    }
-
-    private float scaleFactor = 1.0f;
-    private ScaleGestureDetector scaleDetector;
-
-    private class ScaleListener
-            extends ScaleGestureDetector.SimpleOnScaleGestureListener {
-        @Override
-        public boolean onScale(ScaleGestureDetector detector) {
-            Util.log(TAG, "Scale factor "+scaleFactor);
-            scaleFactor *= detector.getScaleFactor();
-
-            scaleFactor = Math.max(0.1f, Math.min(scaleFactor, 5.0f));
-            bookViewModel.setZoomScale(scaleFactor);
-            return true;
-        }
-    }
-
-    private void turnPageLeft(){
-        if(bookViewModel.isLastPage()){
-            Util.toast("Finished "+bookViewModel.Data.getValue().Name);
-            navController.navigateUp();
-        } else {
-            bookViewModel.nextPage();
-        }
-    }
-
-    private void turnPageRight(){
-        if(bookViewModel.isFirstPage()){
-            Util.toast("Leaving "+bookViewModel.Data.getValue().Name);
-            navController.navigateUp();
-        } else {
-            bookViewModel.previousPage();
-        }
     }
 
     @Override

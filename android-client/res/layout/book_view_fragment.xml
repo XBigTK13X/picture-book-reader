@@ -4,12 +4,21 @@
     android:layout_height="fill_parent"
     android:orientation="vertical">
 
-    <ImageView
+    <com.otaliastudios.zoom.ZoomImageView
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/current_page_image"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:adjustViewBounds="false"
         android:background="@drawable/image_background"
         android:cropToPadding="false"
-        android:scaleType="fitCenter" />
+        android:scaleType="fitCenter"
+        app:oneFingerScrollEnabled="false"
+        app:maxZoom="5.0"
+        app:minZoom="1.0"
+        app:overScrollHorizontal="true"
+        app:overScrollVertical="true"
+        app:overPinchable="true"
+        app:flingEnabled="false"
+        />
 </LinearLayout>
