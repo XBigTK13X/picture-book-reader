@@ -158,24 +158,15 @@ public class BookViewFragment extends Fragment {
             }
             if(currentPage == null || !currentPage.getAbsoluteFile().equals(page.getAbsoluteFile())){
                pageListWrapper.setVisibility(View.GONE);
-               currentPageImage.setVisibility(View.GONE);
+               currentPageImage.setVisibility(View.VISIBLE);
                Glide.with(currentPageImage)
                        .load(page.getAbsolutePath())
                        .dontAnimate()
                        .into(currentPageImage);
                MainActivity.getInstance().setActionBarTitle(String.format("(%d / %d) %s", bookView.CurrentPageIndex + 1, bookView.getPageCount(), bookName));
                currentPage = page;
-               Handler handler = new Handler();
-               // FIXME Terrible work around for when navigating back to covers.
-               // Otherwise, they are zoomed in awkwardly.
-               // Leaving it for all pages, in case there are some that differ in size
-               handler.postDelayed(new Runnable() {
-                  @Override
-                  public void run() {
-                     currentPageImage.setVisibility(View.VISIBLE);
-                     currentPageImage.zoomTo(1.0f, false);
-                  }
-               }, 100);
+               // FIXME There is a weird bug here.
+               // When going back to covers, they stretch to fit the double page width.
             } else {
                currentPageImage.zoomTo(bookView.ZoomScale, false);
             }
