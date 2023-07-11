@@ -24,7 +24,7 @@ android {
         minSdkVersion 28
         targetSdkVersion 33
         versionCode 21
-        versionName "1.0.5"
+        versionName "1.0.6"
         applicationId "com.simplepathstudios.pbr"
     }
 

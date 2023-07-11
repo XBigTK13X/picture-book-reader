@@ -27,7 +27,7 @@ import io.reactivex.rxjava3.functions.Consumer;
 
 public class CategoryListFragment extends Fragment {
     private final String TAG = "CategoryListFragment";
-    private final int COLUMNS = 8;
+    private final int COLUMNS = 5;
     private RecyclerView listElement;
     private CategoryAdapter adapter;
     private LinearLayoutManager layoutManager;

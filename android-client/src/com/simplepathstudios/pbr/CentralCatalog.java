@@ -25,6 +25,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Observable;
@@ -125,6 +127,12 @@ public class CentralCatalog {
       return getThumbnailLocation(getBookKey(category, book));
    }
 
+   public File getCategoryThumbnail(String category){
+      ArrayList<Book> books = getBooks(category).Books;
+      Book firstBook = books.get(new Random().nextInt(books.size()));
+      return getBookThumbnail(category, firstBook.Name);
+   }
+
    private File getThumbnailLocation(String bookKey){
       return new File(Paths.get(MainActivity.getInstance().getFilesDir().getAbsolutePath(), "thumbnails", bookKey+".jpeg").toString());
    }
@@ -168,18 +176,20 @@ public class CentralCatalog {
    }
 
    public void addCategory(String name, ArrayList<Book> books){
-      books.sort(new Comparator<Book>() {
-         @Override
-         public int compare(Book o1, Book o2) {
-            return o1.Name.toLowerCase().compareTo(o2.Name.toLowerCase());
+      if(books.size() > 0){
+         books.sort(new Comparator<Book>() {
+            @Override
+            public int compare(Book o1, Book o2) {
+               return o1.Name.toLowerCase().compareTo(o2.Name.toLowerCase());
+            }
+         });
+         categoriesLookup.put(name, books);
+         BookCategory category = new BookCategory();
+         category.Name = name;
+         categoriesList.add(category);
+         for(Book book : books){
+            bookLookup.put(getBookKey(name, book.Name), book);
          }
-      });
-      categoriesLookup.put(name, books);
-      BookCategory category = new BookCategory();
-      category.Name = name;
-      categoriesList.add(category);
-      for(Book book : books){
-         bookLookup.put(getBookKey(name, book.Name), book);
       }
    }
 
