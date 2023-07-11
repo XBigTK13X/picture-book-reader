@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public boolean isCurrentLocation(String locationName){
-        return currentLocation.getDisplayName() == locationName;
+        return currentLocation.getLabel().equals(locationName);
     }
 
     @Override

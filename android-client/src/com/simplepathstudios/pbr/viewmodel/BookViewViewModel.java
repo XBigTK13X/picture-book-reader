@@ -48,4 +48,10 @@ public class BookViewViewModel extends ViewModel {
       bookView.ZoomScale = scale;
       Data.setValue(bookView);
    }
+
+   public void gotoPage(int pageIndex){
+      BookView bookView = Data.getValue();
+      bookView.gotoPage(pageIndex);
+      Data.setValue(bookView);
+   }
 }
