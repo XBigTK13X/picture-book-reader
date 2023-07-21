@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
 import io.reactivex.rxjava3.core.Observable;
@@ -207,6 +206,12 @@ public class CentralCatalog {
       CategoryView categoryView = new CategoryView();
       categoryView.Books = categoriesLookup.get(categoryName);
       return categoryView;
+   }
+
+   public Book getRandomBook(){
+      BookCategory category = categoriesList.get(new Random().nextInt(categoriesList.size()));
+      ArrayList<Book> books = categoriesLookup.get(category.Name);
+      return books.get(new Random().nextInt(books.size()));
    }
 
    public Observable<BookView> getBook(String categoryName, String bookName){

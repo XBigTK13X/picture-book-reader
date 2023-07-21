@@ -151,6 +151,7 @@ public class MainActivity extends AppCompatActivity {
         // Pages that show full nav, not just the back button
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.category_list_fragment,
+                R.id.random_fragment,
                 R.id.options_fragment)
                 .setDrawerLayout(drawerLayout)
                 .build();

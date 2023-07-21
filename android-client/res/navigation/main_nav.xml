@@ -24,4 +24,9 @@
         android:name="com.simplepathstudios.pbr.fragment.BookViewFragment"
         android:label="Book"
         tools:layout="@layout/book_view_fragment" />
+    <fragment
+        android:id="@+id/random_fragment"
+        android:name="com.simplepathstudios.pbr.fragment.RandomFragment"
+        android:label="Book"
+        tools:layout="@layout/random_fragment" />
 </navigation>
