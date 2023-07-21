@@ -60,6 +60,8 @@ public class BookViewFragment extends Fragment {
    private PageAdapter adapter;
    private LinearLayoutManager layoutManager;
    private BookView currentBookView;
+   private float lastZoom = -1;
+   private long lastZoomTime = -1;
 
 
    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -105,6 +107,14 @@ public class BookViewFragment extends Fragment {
                if(lastMultiTouchTime != -1 && currentTime - lastMultiTouchTime < PBRSettings.PinchReleaseThreshold){
                   return false;
                }
+               // Give a little time after double tapping, in case the second tap hit a border
+               if(lastZoom != currentPageImage.getZoom()){
+                  lastZoom = currentPageImage.getZoom();
+                  lastZoomTime = System.currentTimeMillis();
+               }
+               if(lastZoomTime != -1 && currentTime - lastZoomTime < PBRSettings.PinchReleaseThreshold){
+                  return false;
+               }
                if(event.getPointerCount() == 1 && action == MotionEvent.ACTION_DOWN) {
                   if (lastTouchTime != -1) {
                      if (currentTime - lastTouchTime < PBRSettings.DoubleTapThreshold) {
@@ -113,6 +123,7 @@ public class BookViewFragment extends Fragment {
                      }
                   }
                   lastTouchTime = currentTime;
+                  lastZoom = currentPageImage.getZoom();
                }
                if (currentPageImage.getZoom() < PBRSettings.PageTurnZoomThreshold) {
                   int touchEndX = ((int) event.getRawX());
