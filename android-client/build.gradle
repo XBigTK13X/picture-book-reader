@@ -24,7 +24,7 @@ android {
         minSdkVersion 28
         targetSdkVersion 33
         versionCode 21
-        versionName "1.1.0"
+        versionName "1.1.1"
         applicationId "com.simplepathstudios.pbr"
     }
 
@@ -55,6 +55,6 @@ dependencies {
     implementation(platform('org.jetbrains.kotlin:kotlin-bom:1.8.0'))
     implementation 'io.reactivex.rxjava3:rxjava:3.1.6'
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.2'
-    implementation("com.otaliastudios:zoomlayout:1.9.0")
+    implementation 'com.otaliastudios:zoomlayout:1.9.0'
     implementation 'com.google.code.gson:gson:2.10.1'
 }

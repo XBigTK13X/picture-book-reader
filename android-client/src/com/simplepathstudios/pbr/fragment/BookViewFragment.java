@@ -12,6 +12,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.ViewSwitcher;
 
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -23,6 +24,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
@@ -58,7 +60,6 @@ public class BookViewFragment extends Fragment {
    private PageAdapter adapter;
    private LinearLayoutManager layoutManager;
    private BookView currentBookView;
-   private Handler debounceHandler;
 
 
    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -73,10 +74,9 @@ public class BookViewFragment extends Fragment {
    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
       super.onViewCreated(view, savedInstanceState);
       bookViewModel = new ViewModelProvider(MainActivity.getInstance()).get(BookViewViewModel.class);
-      currentPageImage = view.findViewById(R.id.current_page_image);
-
       pageListWrapper = view.findViewById(R.id.page_list_wrapper);
       listElement = view.findViewById(R.id.page_list);
+      currentPageImage = view.findViewById(R.id.current_page_image);
       adapter = new PageAdapter();
       listElement.setAdapter(adapter);
       layoutManager = new GridLayoutManager(getActivity(), COLUMNS);
@@ -168,49 +168,50 @@ public class BookViewFragment extends Fragment {
          }
       });
 
-      debounceHandler = new Handler(Looper.getMainLooper());
-
       bookViewModel.Data.observe(getViewLifecycleOwner(), new Observer<BookView>() {
          @Override
          public void onChanged(BookView bookView) {
-            debounceHandler.removeCallbacksAndMessages(null);
-            debounceHandler.postDelayed((Runnable) () -> {
-               File page = bookView.getCurrentPage();
-               // The book is different from the last time the pager was constructed
-               if (currentBookView == null || !currentBookView.Name.equals(bookView.Name)) {
-                  ArrayList<Integer> pageIndices = new ArrayList<>();
-                  int pageIndex = 0;
-                  for (String pageId : bookView.PageIds) {
-                     pageIndices.add(pageIndex++);
-                  }
-                  adapter.setData(pageIndices);
-                  adapter.notifyDataSetChanged();
+            File page = bookView.getCurrentPage();
+            // The book is different from the last time the fragment was built
+            if (currentBookView == null || !currentBookView.Name.equals(bookView.Name)) {
+               ArrayList<Integer> pageIndices = new ArrayList<>();
+               int pageIndex = 0;
+               for (String pageId : bookView.PageIds) {
+                  pageIndices.add(pageIndex++);
                }
-               // The page changed
-               if (currentPage == null || !currentPage.getAbsoluteFile().equals(page.getAbsoluteFile())) {
+               adapter.setData(pageIndices);
+               adapter.notifyDataSetChanged();
+            }
+            // The page changed
+            if (currentPage == null || !currentPage.getAbsoluteFile().equals(page.getAbsoluteFile())) {
+               if(pageListWrapper.getVisibility() == View.VISIBLE){
                   pageListWrapper.setVisibility(View.GONE);
-                  currentPageImage.setVisibility(View.VISIBLE);
-                  Glide.with(currentPageImage)
-                          .load(page.getAbsolutePath())
-                          .listener(new RequestListener<Drawable>() {
-                             @Override
-                             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                                return false;
-                             }
-
-                             @Override
-                             public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                                resetZoom();
-                                return false;
-                             }
-                          })
-                          .dontAnimate()
-                          .into(currentPageImage);
-                  MainActivity.getInstance().setActionBarTitle(String.format("(%d / %d) %s", bookView.CurrentPageIndex + 1, bookView.getPageCount(), bookName));
-                  currentPage = page;
                }
-               currentBookView = bookView;
-            }, PBRSettings.PageTurnDebounceMilliseconds);
+               if(currentPageImage.getVisibility() != View.VISIBLE){
+                  currentPageImage.setVisibility(View.VISIBLE);
+               }
+               Glide.with(currentPageImage)
+                       .load(page.getAbsolutePath())
+                       .listener(new RequestListener<Drawable>() {
+                          @Override
+                          public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                             return false;
+                          }
+
+                          @Override
+                          public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                             new Handler(Looper.getMainLooper()).post(()->{
+                                resetZoom();
+                             });
+                             return false;
+                          }
+                       })
+                       .dontAnimate()
+                       .into(currentPageImage);
+               MainActivity.getInstance().setActionBarTitle(String.format("(%d / %d) %s", bookView.CurrentPageIndex + 1, bookView.getPageCount(), bookName));
+               currentPage = page;
+            }
+            currentBookView = bookView;
          }
       });
 
@@ -218,9 +219,7 @@ public class BookViewFragment extends Fragment {
    }
 
    private void resetZoom(){
-      new Handler(Looper.getMainLooper()).postDelayed(()->{
-         currentPageImage.zoomTo(1.0f, false);
-      }, 100);
+      currentPageImage.zoomTo(1.0f, false);
    }
 
    private void showPagePicker(){
