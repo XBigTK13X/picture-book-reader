@@ -53,6 +53,7 @@ public class BookViewFragment extends Fragment {
    private boolean multiTouchHappening = false;
    private long lastMultiTouchTime = -1;
    private long lastTouchTime = -1;
+   private long doubleTapTime = -1;
 
    private final int COLUMNS = 8;
    private LinearLayout pageListWrapper;
@@ -60,8 +61,7 @@ public class BookViewFragment extends Fragment {
    private PageAdapter adapter;
    private LinearLayoutManager layoutManager;
    private BookView currentBookView;
-   private float lastZoom = -1;
-   private long lastZoomTime = -1;
+
 
 
    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -101,58 +101,69 @@ public class BookViewFragment extends Fragment {
             if(event.getPointerCount() > 1 && !multiTouchHappening){
                multiTouchHappening = true;
             }
-            if(!multiTouchHappening) {
+            if(multiTouchHappening) {
+               lastMultiTouchTime = System.currentTimeMillis();
+            }
+            else{
                long currentTime = System.currentTimeMillis();
                // Give a little time after stopping a pinch to avoid accidental single point gestures
                if(lastMultiTouchTime != -1 && currentTime - lastMultiTouchTime < PBRSettings.PinchReleaseThreshold){
+                  debugGesture("Ignore input so soon after a pinch");
                   return false;
                }
                // Give a little time after double tapping, in case the second tap hit a border
-               if(lastZoom != currentPageImage.getZoom()){
-                  lastZoom = currentPageImage.getZoom();
-                  lastZoomTime = System.currentTimeMillis();
-               }
-               if(lastZoomTime != -1 && currentTime - lastZoomTime < PBRSettings.PinchReleaseThreshold){
+               if(doubleTapTime != -1 && currentTime - doubleTapTime < PBRSettings.PinchReleaseThreshold){
+                  debugGesture("Ignore input if a double tap just happened");
                   return false;
                }
-               if(event.getPointerCount() == 1 && action == MotionEvent.ACTION_DOWN) {
-                  if (lastTouchTime != -1) {
-                     if (currentTime - lastTouchTime < PBRSettings.DoubleTapThreshold) {
-                        resetZoom();
-                        MainActivity.getInstance().toolbarHide();
-                     }
+               if(action == MotionEvent.ACTION_DOWN) {
+                  if (lastTouchTime != -1 && currentTime - lastTouchTime < PBRSettings.DoubleTapThreshold) {
+                     debugGesture("Reset zoom on double tap");
+                     resetZoom();
+                     MainActivity.getInstance().toolbarHide();
+                     doubleTapTime = System.currentTimeMillis();
                   }
+                  debugGesture("Finger touched the screen");
+                  touchStartX = (int) event.getRawX();
+                  touchStartY = (int) event.getRawY();
                   lastTouchTime = currentTime;
-                  lastZoom = currentPageImage.getZoom();
+                  return false;
                }
                if (currentPageImage.getZoom() < PBRSettings.PageTurnZoomThreshold) {
-                  int touchEndX = ((int) event.getRawX());
-                  int touchEndY = ((int) event.getRawY());
-                  int deltaX = touchEndX - touchStartX;
-                  int deltaY = touchEndY - touchStartY;
                   if (action == MotionEvent.ACTION_UP) {
+                     int touchEndX = ((int) event.getRawX());
+                     int touchEndY = ((int) event.getRawY());
+                     int deltaX = touchEndX - touchStartX;
+                     int deltaY = touchEndY - touchStartY;
+                     //Util.log(TAG, "tsX: "+touchStartX + ", teX: "+touchEndX+", tsY: "+touchStartY+", teY: "+touchEndY+", dX: "+deltaX+", dY: "+deltaY);
                      //Tap left border
                      if(touchStartX < leftBorder && touchEndX < leftBorder){
+                        debugGesture("Tapping left");
                         previousPage();
                      }
                      // Tap right border
                      else if(touchStartX > rightBorder && touchEndX > rightBorder){
+                        debugGesture("Tapping right");
                         nextPage();
                      }
                      // Swipe Down
                      else if (deltaY > PBRSettings.SwipeThresholdY && Math.abs(deltaX) < PBRSettings.SwipeThresholdX) {
+                        debugGesture("Swiping down");
                         MainActivity.getInstance().toolbarShow();
                      }
                      // Swipe Up
                      else if (deltaY < -PBRSettings.SwipeThresholdY && Math.abs(deltaX) < PBRSettings.SwipeThresholdX) {
+                        debugGesture("Swiping up");
                         showPagePicker();
                      }
                      // Swipe Right
                      else if (deltaX > PBRSettings.SwipeThresholdX) {
+                        debugGesture("Swiping right");
                         previousPage();
                      }
                      // Swipe Left
                      else if (deltaX < -PBRSettings.SwipeThresholdX) {
+                        debugGesture("Swiping left");
                         nextPage();
                      }
                      if (MainActivity.getInstance().toolbarIsVisible()) {
@@ -167,13 +178,12 @@ public class BookViewFragment extends Fragment {
                         }, PBRSettings.ShowToolbarMilliseconds);
                      }
                   }
-                  if (action == MotionEvent.ACTION_DOWN) {
+                  else if (action == MotionEvent.ACTION_DOWN) {
+                     debugGesture("Tap happening at the end");
                      touchStartX = (int) event.getRawX();
                      touchStartY = (int) event.getRawY();
                   }
                }
-            } else {
-               lastMultiTouchTime = System.currentTimeMillis();
             }
             return false;
          }
@@ -227,6 +237,10 @@ public class BookViewFragment extends Fragment {
       });
 
       bookViewModel.load(categoryName, bookName);
+   }
+
+   private void debugGesture(String message){
+      //Util.log(TAG, message);
    }
 
    private void resetZoom(){
