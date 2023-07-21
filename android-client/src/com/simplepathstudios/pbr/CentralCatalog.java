@@ -21,6 +21,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -47,16 +48,18 @@ public class CentralCatalog {
    private HashMap<String, Book> bookLookup;
    private ArrayList<Book> bookList;
    private File cachedCatalogFile;
+   private HashMap<String, String> bookThumbnailLookup;
 
    private CentralCatalog(){
       this.categoriesLookup = new HashMap<>();
       this.categoriesList = new ArrayList<>();
       this.bookList = new ArrayList<>();
       this.bookLookup = new HashMap<>();
+      this.bookThumbnailLookup = new HashMap<>();
       this.cachedCatalogFile = new File(Paths.get(MainActivity.getInstance().getFilesDir().getAbsolutePath(),"data/","catalog.json").toString());
    }
 
-   public Observable<Boolean> importLibrary(boolean cleanScan, boolean additiveScan){
+   public Observable<Boolean> importLibrary(boolean cleanScan){
       if(cleanScan){
          Util.clean("thumbnails/");
          Util.clean("extract-thumbnails/");
@@ -65,7 +68,7 @@ public class CentralCatalog {
       }
       else {
          try {
-            if (!additiveScan && cachedCatalogFile.exists()) {
+            if (cachedCatalogFile.exists()) {
                LoadingIndicator.setLoading(false);
                BufferedReader fileReader = new BufferedReader(new FileReader(cachedCatalogFile));
                Gson gson = new Gson();
@@ -74,9 +77,8 @@ public class CentralCatalog {
                categoriesLookup = cachedCatalog.categoriesLookup;
                bookLookup = cachedCatalog.bookLookup;
                bookList = cachedCatalog.bookList;
-               return Observable.fromCallable(()->{
-                  return true;
-               });
+               bookThumbnailLookup = cachedCatalog.bookThumbnailLookup;
+               return Observable.fromCallable(()-> true);
             }
          }
          catch(Throwable t){
@@ -88,18 +90,31 @@ public class CentralCatalog {
       this.categoriesList = new ArrayList<>();
       this.bookLookup = new HashMap<>();
       this.bookList = new ArrayList<>();
+      this.bookThumbnailLookup = new HashMap<>();
       return Observable.fromCallable(()->{
          int bookIndex = 0;
          int bookCount = 0;
          DocumentFile[] categories = libraryRoot.listFiles();
          // Top level is folders (categories)}
          for(DocumentFile category : categories){
-            // Next level is files (books)
-            for(DocumentFile book : category.listFiles()){
-               bookCount++;
+            if(category.getName().equals(".thumbnails")){
+               for(DocumentFile thumb : category.listFiles()){
+                  if(thumb.isFile()){
+                     bookThumbnailLookup.put(thumb.getName().replace(".jpg",""), thumb.getUri().toString());
+                  }
+               }
+            }
+            else {
+               // Next level is files (books)
+               for(DocumentFile book : category.listFiles()){
+                  bookCount++;
+               }
             }
          }
          for(DocumentFile category : categories){
+            if(category.getName().equals(".thumbnails")){
+               continue;
+            }
             DocumentFile[] books = category.listFiles();
             ArrayList<Book> parsedBooks = new ArrayList<Book>();
             for(DocumentFile bookFile : books){
@@ -111,8 +126,8 @@ public class CentralCatalog {
                  book.CategoryName = category.getName();
                  book.SearchSlug = book.CategoryName.toLowerCase() + "-" + book.Name.toLowerCase();
                  book.CompareSlug = book.Name.toLowerCase();
+                 book.ThumbnailUri = bookThumbnailLookup.get(book.Name.replace(".cbz", ""));
                  parsedBooks.add(book);
-                 generateThumbnail(getBookKey(book.CategoryName, book.Name), book.TreeUri);
             };
             CentralCatalog.getInstance().addCategory(category.getName(), parsedBooks);
            }
@@ -129,52 +144,21 @@ public class CentralCatalog {
         .observeOn(AndroidSchedulers.mainThread());
    }
 
-   public File getBookThumbnail(String category, String book) {
-      return getThumbnailLocation(getBookKey(category, book));
-   }
-
-   public File getCategoryThumbnail(String category){
-      ArrayList<Book> books = getBooks(category).Books;
-      Book firstBook = books.get(new Random().nextInt(books.size()));
-      return getBookThumbnail(category, firstBook.Name);
-   }
-
-   private File getThumbnailLocation(String bookKey){
-      return new File(Paths.get(MainActivity.getInstance().getFilesDir().getAbsolutePath(), "thumbnails", bookKey+".jpeg").toString());
-   }
-
-   public File generateThumbnail(String bookKey, String archiveUri){
-      File file = getThumbnailLocation(bookKey);
-      if(file.exists()) {
-         return file;
+   public byte[] getBookThumbnail(String category, String book) {
+      try{
+         InputStream thumbStream = MainActivity.getInstance().getContentResolver().openInputStream(Uri.parse(bookThumbnailLookup.get(book.replace(".cbz",""))));
+         return Util.readAllBytes(thumbStream);
       }
-      ArrayList<File> files = Util.extractArchive(archiveUri, "extract-thumbnails/", false);
-      try {
-         for (File extractedFile : files) {
-            if (extractedFile.isDirectory()) {
-               continue;
-            }
-            String entryName = extractedFile.getName();
-            if (!entryName.endsWith(".xml") && !entryName.endsWith(".txt")) {
-               Bitmap bitmap = BitmapFactory.decodeFile(extractedFile.getAbsolutePath());
-               if (bitmap != null) {
-                  Bitmap thumbnail = Bitmap.createScaledBitmap(bitmap, 500, 500, true);
-                  File thumbnailFile = getThumbnailLocation(bookKey);
-                  thumbnailFile.getParentFile().mkdirs();
-                  FileOutputStream thumbnailStream = new FileOutputStream(thumbnailFile);
-                  thumbnail.compress(Bitmap.CompressFormat.JPEG, 95, thumbnailStream);
-                  thumbnail.recycle();
-                  bitmap.recycle();
-                  Util.clean("extract-thumbnails/");
-                  return thumbnailFile;
-               }
-            }
-         }
-
-      } catch(Throwable e){
+      catch(Throwable e){
          Util.error(TAG, e);
       }
       return null;
+   }
+
+   public byte[] getCategoryThumbnail(String category){
+      ArrayList<Book> books = getBooks(category).Books;
+      Book firstBook = books.get(new Random().nextInt(books.size()));
+      return getBookThumbnail(category, firstBook.Name);
    }
 
    public String getBookKey(String categoryName, String bookName){

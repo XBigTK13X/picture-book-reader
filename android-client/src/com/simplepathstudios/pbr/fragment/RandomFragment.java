@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.simplepathstudios.pbr.CentralCatalog;
 import com.simplepathstudios.pbr.LoadingIndicator;
 import com.simplepathstudios.pbr.MainActivity;
@@ -62,10 +63,10 @@ public class RandomFragment extends Fragment {
       rerollButton = view.findViewById(R.id.reroll_button);
       rerollButton.setOnClickListener(clickedView -> {
          LoadingIndicator.setLoading(true);
-         CentralCatalog.getInstance().importLibrary(false, false).doOnComplete(()-> {
+         CentralCatalog.getInstance().importLibrary(false).doOnComplete(()-> {
             book = CentralCatalog.getInstance().getRandomBook();
-            File thumbnail = CentralCatalog.getInstance().getBookThumbnail(book.CategoryName, book.Name);
-            coverImage.setImageBitmap(BitmapFactory.decodeFile(thumbnail.getAbsolutePath()));
+            byte[] thumbBytes = CentralCatalog.getInstance().getBookThumbnail(book.CategoryName, book.Name);
+            Glide.with(MainActivity.getInstance()).load(thumbBytes).into(coverImage);
             LoadingIndicator.setLoading(false);
          }).subscribe();
       });

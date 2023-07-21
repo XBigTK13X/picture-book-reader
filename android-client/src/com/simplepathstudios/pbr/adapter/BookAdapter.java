@@ -18,6 +18,7 @@ import com.simplepathstudios.pbr.R;
 import com.simplepathstudios.pbr.api.model.Book;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 public class BookAdapter extends RecyclerView.Adapter<BookAdapter.ViewHolder> {
@@ -40,8 +41,8 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.ViewHolder> {
    @Override
    public void onBindViewHolder(BookAdapter.ViewHolder holder, int position) {
       holder.book = this.data.get(position);
-      File thumbnail = CentralCatalog.getInstance().getBookThumbnail(holder.book.CategoryName, holder.book.Name);
-      Glide.with(MainActivity.getInstance()).load(thumbnail).into(holder.image);
+      byte[] thumbBytes = CentralCatalog.getInstance().getBookThumbnail(holder.book.CategoryName, holder.book.Name);
+      Glide.with(MainActivity.getInstance()).load(thumbBytes).into(holder.image);
    }
 
    @Override

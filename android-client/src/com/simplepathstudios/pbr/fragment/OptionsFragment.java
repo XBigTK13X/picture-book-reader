@@ -29,7 +29,6 @@ public class OptionsFragment extends Fragment {
     private TextView debugLogStatus;
     private Button updatePBRButton;
     private Button clearLibraryButton;
-    private Button scanLibraryButton;
     private Button rescanLibraryButton;
     private Button enableFullScreenButton;
     private TextView libraryText;
@@ -77,26 +76,13 @@ public class OptionsFragment extends Fragment {
             }
         });
 
-        scanLibraryButton = view.findViewById(R.id.scan_library_button);
-        scanLibraryButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                LoadingIndicator.setLoading(true);
-                MainActivity.getInstance().toolbarHide();
-                CentralCatalog.getInstance().importLibrary(false, true).doOnComplete(()->{
-                    MainActivity.getInstance().toolbarShow();
-                    LoadingIndicator.setLoading(false);
-                }).subscribe();;
-            }
-        });
-
         rescanLibraryButton = view.findViewById(R.id.rescan_library_button);
         rescanLibraryButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 MainActivity.getInstance().toolbarHide();
                 LoadingIndicator.setLoading(true);
-                CentralCatalog.getInstance().importLibrary(true, false).doOnComplete(()->{
+                CentralCatalog.getInstance().importLibrary(true).doOnComplete(()->{
                     MainActivity.getInstance().toolbarShow();
                     LoadingIndicator.setLoading(false);
                 }).subscribe();
