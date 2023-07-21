@@ -3,9 +3,12 @@
     <group android:checkableBehavior="single">
     <item android:id="@+id/category_list_fragment"
         android:title="Categories" />
+        <item android:id="@+id/search_fragment"
+            android:title="Search" />
     <item android:id="@+id/random_fragment"
         android:title="Random" />
     <item android:id="@+id/options_fragment"
         android:title="Options" />
+
     </group>
 </menu>

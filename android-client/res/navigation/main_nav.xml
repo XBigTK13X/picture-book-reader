@@ -27,6 +27,11 @@
     <fragment
         android:id="@+id/random_fragment"
         android:name="com.simplepathstudios.pbr.fragment.RandomFragment"
-        android:label="Book"
+        android:label="Random"
         tools:layout="@layout/random_fragment" />
+    <fragment
+        android:id="@+id/search_fragment"
+        android:name="com.simplepathstudios.pbr.fragment.SearchFragment"
+        android:label="Search"
+        tools:layout="@layout/search_fragment" />
 </navigation>

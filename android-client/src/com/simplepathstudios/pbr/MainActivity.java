@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -15,6 +16,7 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -151,6 +153,7 @@ public class MainActivity extends AppCompatActivity {
         // Pages that show full nav, not just the back button
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.category_list_fragment,
+                R.id.search_fragment,
                 R.id.random_fragment,
                 R.id.options_fragment)
                 .setDrawerLayout(drawerLayout)
@@ -187,21 +190,6 @@ public class MainActivity extends AppCompatActivity {
                 navController.navigate(menuItem.getItemId());
                 drawerLayout.closeDrawer(GravityCompat.START);
                 return true;
-            }
-        });
-
-        drawerLayout.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                // Hide the keyboard if touch event outside keyboard (better search experience)
-                InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-                if (imm != null) {
-                    View focus = getCurrentFocus();
-                    if (focus != null) {
-                        imm.hideSoftInputFromWindow(focus.getWindowToken(), 0);
-                    }
-                }
-                return false;
             }
         });
 

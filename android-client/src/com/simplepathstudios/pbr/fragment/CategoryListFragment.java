@@ -30,7 +30,7 @@ public class CategoryListFragment extends Fragment {
     private final int COLUMNS = 5;
     private RecyclerView listElement;
     private CategoryAdapter adapter;
-    private LinearLayoutManager layoutManager;
+    private GridLayoutManager layoutManager;
     private CategoryListViewModel viewModel;
     private SettingsViewModel settingsViewModel;
     @Override

@@ -27,7 +27,7 @@ public class CategoryViewFragment extends Fragment {
    private String categoryName;
    private RecyclerView listElement;
    private BookAdapter adapter;
-   private LinearLayoutManager layoutManager;
+   private GridLayoutManager layoutManager;
 
    @Override
    public void onCreate(Bundle savedInstanceState) {

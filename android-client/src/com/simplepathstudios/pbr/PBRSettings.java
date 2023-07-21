@@ -4,8 +4,8 @@ package com.simplepathstudios.pbr;
 import android.net.Uri;
 
 public class PBRSettings {
-    public static final String BuildDate = "July 20, 2023";
-    public static final String ClientVersion = "1.0.8";
+    public static final String BuildDate = "July 21, 2023";
+    public static final String ClientVersion = "1.0.9";
     public static boolean EnableDebugLog = false;
     public static Uri UpdatePBRUrl = Uri.parse("http://9914.us/software/android/picture-book-reader.apk");
     public static boolean DebugResourceLeaks = false;
@@ -17,4 +17,5 @@ public class PBRSettings {
     public static float DoubleTapThreshold = 300;
     public static float PinchReleaseThreshold = 300;
     public static float TapBorderThresholdPercent = 0.05f;
+    public static int SearchDelayMilliseconds = 300;
 }

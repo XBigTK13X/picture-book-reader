@@ -14,6 +14,7 @@ import com.simplepathstudios.pbr.api.model.BookCategory;
 import com.simplepathstudios.pbr.api.model.BookView;
 import com.simplepathstudios.pbr.api.model.CategoryList;
 import com.simplepathstudios.pbr.api.model.CategoryView;
+import com.simplepathstudios.pbr.api.model.SearchResults;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -44,11 +45,13 @@ public class CentralCatalog {
    private HashMap<String, ArrayList<Book>> categoriesLookup;
    private ArrayList<BookCategory> categoriesList;
    private HashMap<String, Book> bookLookup;
+   private ArrayList<Book> bookList;
    private File cachedCatalogFile;
 
    private CentralCatalog(){
       this.categoriesLookup = new HashMap<>();
       this.categoriesList = new ArrayList<>();
+      this.bookList = new ArrayList<>();
       this.bookLookup = new HashMap<>();
       this.cachedCatalogFile = new File(Paths.get(MainActivity.getInstance().getFilesDir().getAbsolutePath(),"data/","catalog.json").toString());
    }
@@ -70,6 +73,7 @@ public class CentralCatalog {
                categoriesList = cachedCatalog.categoriesList;
                categoriesLookup = cachedCatalog.categoriesLookup;
                bookLookup = cachedCatalog.bookLookup;
+               bookList = cachedCatalog.bookList;
                return Observable.fromCallable(()->{
                   return true;
                });
@@ -83,6 +87,7 @@ public class CentralCatalog {
       this.categoriesLookup = new HashMap<>();
       this.categoriesList = new ArrayList<>();
       this.bookLookup = new HashMap<>();
+      this.bookList = new ArrayList<>();
       return Observable.fromCallable(()->{
          int bookIndex = 0;
          int bookCount = 0;
@@ -104,6 +109,8 @@ public class CentralCatalog {
                  book.TreeUri = bookFile.getUri().toString();
                  book.Name = bookFile.getName();
                  book.CategoryName = category.getName();
+                 book.SearchSlug = book.CategoryName.toLowerCase() + "-" + book.Name.toLowerCase();
+                 book.CompareSlug = book.Name.toLowerCase();
                  parsedBooks.add(book);
                  generateThumbnail(getBookKey(book.CategoryName, book.Name), book.TreeUri);
             };
@@ -179,10 +186,11 @@ public class CentralCatalog {
          books.sort(new Comparator<Book>() {
             @Override
             public int compare(Book o1, Book o2) {
-               return o1.Name.toLowerCase().compareTo(o2.Name.toLowerCase());
+               return o1.CompareSlug.compareTo(o2.CompareSlug);
             }
          });
          categoriesLookup.put(name, books);
+         bookList.addAll(books);
          BookCategory category = new BookCategory();
          category.Name = name;
          categoriesList.add(category);
@@ -249,5 +257,16 @@ public class CentralCatalog {
       })
         .subscribeOn(Schedulers.newThread())
         .observeOn(AndroidSchedulers.mainThread());
+   }
+
+   public SearchResults search(String needle){
+      SearchResults results = new SearchResults();
+      needle = needle.toLowerCase();
+      for(Book book : bookList){
+         if(book.SearchSlug.contains(needle)){
+            results.Books.add(book);
+         }
+      }
+      return results;
    }
 }

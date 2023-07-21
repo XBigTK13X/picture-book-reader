@@ -6,8 +6,6 @@ public class Book {
    public String CategoryName;
    public String Name;
    public String TreeUri;
-
-   public String getDisplayName(){
-      return Name.substring(0,Name.lastIndexOf(" - "));
-   }
+   public String SearchSlug;
+   public String CompareSlug;
 }
