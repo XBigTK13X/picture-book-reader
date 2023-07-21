@@ -38,15 +38,9 @@ public class BookViewViewModel extends ViewModel {
       return bookView.CurrentPageIndex <= 0;
    }
 
-   public boolean isLastPage(){
+   public boolean isLastPage() {
       BookView bookView = Data.getValue();
       return bookView.CurrentPageIndex >= bookView.Pages.size() - 1;
-   }
-
-   public void setZoomScale(float scale){
-      BookView bookView = Data.getValue();
-      bookView.ZoomScale = scale;
-      Data.setValue(bookView);
    }
 
    public void gotoPage(int pageIndex){

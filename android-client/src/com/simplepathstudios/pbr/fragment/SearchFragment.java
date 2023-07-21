@@ -47,7 +47,7 @@ public class SearchFragment extends Fragment {
    @Override
    public void onCreate(Bundle savedInstanceState) {
       super.onCreate(savedInstanceState);
-      debouncedHandler = new Handler();
+      debouncedHandler = new Handler(Looper.getMainLooper());
    }
 
    @Override

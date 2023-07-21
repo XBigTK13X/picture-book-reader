@@ -1,8 +1,10 @@
 package com.simplepathstudios.pbr.fragment;
 
 import android.annotation.SuppressLint;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.LayoutInflater;
@@ -20,6 +22,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.otaliastudios.zoom.ZoomImageView;
 import com.simplepathstudios.pbr.MainActivity;
 import com.simplepathstudios.pbr.PBRSettings;
@@ -31,6 +37,7 @@ import com.simplepathstudios.pbr.viewmodel.BookViewViewModel;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class BookViewFragment extends Fragment {
    private static final String TAG = "BookViewFragment";
@@ -51,6 +58,7 @@ public class BookViewFragment extends Fragment {
    private PageAdapter adapter;
    private LinearLayoutManager layoutManager;
    private BookView currentBookView;
+   private Handler debounceHandler;
 
 
    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -100,7 +108,7 @@ public class BookViewFragment extends Fragment {
                if(event.getPointerCount() == 1 && action == MotionEvent.ACTION_DOWN) {
                   if (lastTouchTime != -1) {
                      if (currentTime - lastTouchTime < PBRSettings.DoubleTapThreshold) {
-                        bookViewModel.setZoomScale(1.0f);
+                        resetZoom();
                         MainActivity.getInstance().toolbarHide();
                      }
                   }
@@ -137,7 +145,7 @@ public class BookViewFragment extends Fragment {
                         nextPage();
                      }
                      if (MainActivity.getInstance().toolbarIsVisible()) {
-                        Handler handler = new Handler();
+                        Handler handler = new Handler(Looper.getMainLooper());
                         handler.postDelayed(new Runnable() {
                            @Override
                            public void run() {
@@ -160,37 +168,59 @@ public class BookViewFragment extends Fragment {
          }
       });
 
+      debounceHandler = new Handler(Looper.getMainLooper());
+
       bookViewModel.Data.observe(getViewLifecycleOwner(), new Observer<BookView>() {
          @Override
          public void onChanged(BookView bookView) {
-            File page = bookView.getCurrentPage();
-            if(currentBookView == null || !currentBookView.Name.equals(bookView.Name)){
-               ArrayList<Integer> pageIndices = new ArrayList<>();
-               int pageIndex = 0;
-               for(String pageId : bookView.PageIds){
-                  pageIndices.add(pageIndex++);
+            debounceHandler.removeCallbacksAndMessages(null);
+            debounceHandler.postDelayed((Runnable) () -> {
+               File page = bookView.getCurrentPage();
+               // The book is different from the last time the pager was constructed
+               if (currentBookView == null || !currentBookView.Name.equals(bookView.Name)) {
+                  ArrayList<Integer> pageIndices = new ArrayList<>();
+                  int pageIndex = 0;
+                  for (String pageId : bookView.PageIds) {
+                     pageIndices.add(pageIndex++);
+                  }
+                  adapter.setData(pageIndices);
+                  adapter.notifyDataSetChanged();
                }
-               adapter.setData(pageIndices);
-               adapter.notifyDataSetChanged();
-            }
-            if(currentPage == null || !currentPage.getAbsoluteFile().equals(page.getAbsoluteFile())){
-               pageListWrapper.setVisibility(View.GONE);
-               currentPageImage.setVisibility(View.VISIBLE);
-               Glide.with(currentPageImage)
-                       .load(page.getAbsolutePath())
-                       .dontAnimate()
-                       .into(currentPageImage);
-               MainActivity.getInstance().setActionBarTitle(String.format("(%d / %d) %s", bookView.CurrentPageIndex + 1, bookView.getPageCount(), bookName));
-               currentPage = page;
-               // FIXME There is a weird bug here.
-               // When going back to covers, they stretch to fit the double page width.
-            } else {
-               currentPageImage.zoomTo(bookView.ZoomScale, false);
-            }
-            currentBookView = bookView;
+               // The page changed
+               if (currentPage == null || !currentPage.getAbsoluteFile().equals(page.getAbsoluteFile())) {
+                  pageListWrapper.setVisibility(View.GONE);
+                  currentPageImage.setVisibility(View.VISIBLE);
+                  Glide.with(currentPageImage)
+                          .load(page.getAbsolutePath())
+                          .listener(new RequestListener<Drawable>() {
+                             @Override
+                             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                                return false;
+                             }
+
+                             @Override
+                             public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                                resetZoom();
+                                return false;
+                             }
+                          })
+                          .dontAnimate()
+                          .into(currentPageImage);
+                  MainActivity.getInstance().setActionBarTitle(String.format("(%d / %d) %s", bookView.CurrentPageIndex + 1, bookView.getPageCount(), bookName));
+                  currentPage = page;
+               }
+               currentBookView = bookView;
+            }, PBRSettings.PageTurnDebounceMilliseconds);
          }
       });
+
       bookViewModel.load(categoryName, bookName);
+   }
+
+   private void resetZoom(){
+      new Handler(Looper.getMainLooper()).postDelayed(()->{
+         currentPageImage.zoomTo(1.0f, false);
+      }, 100);
    }
 
    private void showPagePicker(){

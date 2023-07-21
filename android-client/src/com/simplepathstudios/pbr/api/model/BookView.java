@@ -15,7 +15,6 @@ public class BookView {
    public ArrayList<String> PageIds;
    public HashMap<String, String> Info;
    public int CurrentPageIndex = 0;
-   public float ZoomScale = 1.0f;
 
    public BookView(){
       Pages = new HashMap<>();
