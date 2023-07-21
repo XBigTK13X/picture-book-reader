@@ -117,11 +117,7 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.main_activity);
 
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-        WindowInsetsControllerCompat windowInsetsControllerCompat = new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
-        windowInsetsControllerCompat.hide(WindowInsetsCompat.Type.systemBars());
-        windowInsetsControllerCompat.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
-
+        Util.enableFullscreen();
 
         SettingsViewModel.Settings settings = settingsViewModel.Data.getValue();
         settingsViewModel.Data.observe(MainActivity.getInstance(), new Observer<SettingsViewModel.Settings>() {
@@ -223,6 +219,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         Intent intent = getIntent();
         Util.log(TAG, "Resuming with intent " + intent.getAction());
+        Util.enableFullscreen();
     }
 
     @Override

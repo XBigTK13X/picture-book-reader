@@ -31,6 +31,7 @@ public class OptionsFragment extends Fragment {
     private Button clearLibraryButton;
     private Button scanLibraryButton;
     private Button rescanLibraryButton;
+    private Button enableFullScreenButton;
     private TextView libraryText;
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
@@ -105,6 +106,14 @@ public class OptionsFragment extends Fragment {
         String versionInfo = String.format("Client Version: %s\nClient Built: %s",PBRSettings.ClientVersion, PBRSettings.BuildDate);
         versionText = view.findViewById(R.id.version_text);
         versionText.setText(versionInfo);
+
+        enableFullScreenButton = view.findViewById(R.id.enable_fullscreen_button);
+        enableFullScreenButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Util.enableFullscreen();
+            }
+        });
 
         debugLogStatus = view.findViewById(R.id.debug_log_status);
         debugLogStatus.setText("Debug logging is "+(PBRSettings.EnableDebugLog ? "enabled" : "disabled"));

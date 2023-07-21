@@ -9,7 +9,12 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.Toast;
+
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import net.lingala.zip4j.io.inputstream.ZipInputStream;
 import net.lingala.zip4j.model.LocalFileHeader;
@@ -204,5 +209,13 @@ public class Util {
 
     public static double getDistance(float x1, float y1, float x2, float y2){
         return Math.sqrt((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1));
+    }
+
+    public static void enableFullscreen(){
+        Window window = MainActivity.getInstance().getWindow();
+        WindowCompat.setDecorFitsSystemWindows(window, false);
+        WindowInsetsControllerCompat windowInsetsControllerCompat = new WindowInsetsControllerCompat(window, window.getDecorView());
+        windowInsetsControllerCompat.hide(WindowInsetsCompat.Type.systemBars());
+        windowInsetsControllerCompat.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
     }
 }

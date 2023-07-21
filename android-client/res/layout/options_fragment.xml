@@ -46,6 +46,12 @@
             android:text="Rescan Entire Library" />
 
         <Button
+            android:id="@+id/enable_fullscreen_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Enable Fullscreen" />
+
+        <Button
             android:id="@+id/debug_log_toggle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

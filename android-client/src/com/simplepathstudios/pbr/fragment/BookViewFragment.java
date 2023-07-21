@@ -3,6 +3,8 @@ package com.simplepathstudios.pbr.fragment;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.DisplayMetrics;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -18,10 +20,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.DataSource;
-import com.bumptech.glide.load.engine.GlideException;
-import com.bumptech.glide.request.RequestListener;
-import com.bumptech.glide.request.target.Target;
 import com.otaliastudios.zoom.ZoomImageView;
 import com.simplepathstudios.pbr.MainActivity;
 import com.simplepathstudios.pbr.PBRSettings;
@@ -44,14 +42,15 @@ public class BookViewFragment extends Fragment {
    private int touchStartX = 0;
    private int touchStartY = 0;
    private boolean multiTouchHappening = false;
+   private long lastMultiTouchTime = -1;
    private long lastTouchTime = -1;
-   private boolean pagePickerCreated = false;
 
    private final int COLUMNS = 8;
    private LinearLayout pageListWrapper;
    private RecyclerView listElement;
    private PageAdapter adapter;
    private LinearLayoutManager layoutManager;
+   private BookView currentBookView;
 
 
    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -74,6 +73,11 @@ public class BookViewFragment extends Fragment {
       listElement.setAdapter(adapter);
       layoutManager = new GridLayoutManager(getActivity(), COLUMNS);
       listElement.setLayoutManager(layoutManager);
+      DisplayMetrics metrics = new DisplayMetrics();
+      Display display = MainActivity.getInstance().getWindowManager().getDefaultDisplay();
+      display.getMetrics(metrics);
+      float leftBorder = ((float)metrics.widthPixels * PBRSettings.TapBorderThresholdPercent);
+      float rightBorder = metrics.widthPixels - leftBorder;
 
       currentPageImage.setOnTouchListener(new View.OnTouchListener() {
          @Override
@@ -88,8 +92,12 @@ public class BookViewFragment extends Fragment {
                multiTouchHappening = true;
             }
             if(!multiTouchHappening) {
+               long currentTime = System.currentTimeMillis();
+               // Give a little time after stopping a pinch to avoid accidental single point gestures
+               if(lastMultiTouchTime != -1 && currentTime - lastMultiTouchTime < PBRSettings.PinchReleaseThreshold){
+                  return false;
+               }
                if(event.getPointerCount() == 1 && action == MotionEvent.ACTION_DOWN) {
-                  long currentTime = System.currentTimeMillis();
                   if (lastTouchTime != -1) {
                      if (currentTime - lastTouchTime < PBRSettings.DoubleTapThreshold) {
                         bookViewModel.setZoomScale(1.0f);
@@ -99,26 +107,34 @@ public class BookViewFragment extends Fragment {
                   lastTouchTime = currentTime;
                }
                if (currentPageImage.getZoom() < PBRSettings.PageTurnZoomThreshold) {
-                  int deltaX = ((int) event.getRawX()) - touchStartX;
-                  int deltaY = ((int) event.getRawY()) - touchStartY;
-                  if (action == MotionEvent.ACTION_MOVE) {
+                  int touchEndX = ((int) event.getRawX());
+                  int touchEndY = ((int) event.getRawY());
+                  int deltaX = touchEndX - touchStartX;
+                  int deltaY = touchEndY - touchStartY;
+                  if (action == MotionEvent.ACTION_UP) {
+                     //Tap left border
+                     if(touchStartX < leftBorder && touchEndX < leftBorder){
+                        previousPage();
+                     }
+                     // Tap right border
+                     else if(touchStartX > rightBorder && touchEndX > rightBorder){
+                        nextPage();
+                     }
                      // Swipe Down
-                     if (deltaY > PBRSettings.SwipeThresholdY && Math.abs(deltaX) < PBRSettings.SwipeThresholdX) {
+                     else if (deltaY > PBRSettings.SwipeThresholdY && Math.abs(deltaX) < PBRSettings.SwipeThresholdX) {
                         MainActivity.getInstance().toolbarShow();
                      }
                      // Swipe Up
-                     if (deltaY < -PBRSettings.SwipeThresholdY && Math.abs(deltaX) < PBRSettings.SwipeThresholdX) {
+                     else if (deltaY < -PBRSettings.SwipeThresholdY && Math.abs(deltaX) < PBRSettings.SwipeThresholdX) {
                         showPagePicker();
                      }
-                  }
-                  if (action == MotionEvent.ACTION_UP) {
-                     // Swipe right
-                     if (deltaX > PBRSettings.SwipeThresholdX) {
-                        turnPageRight();
+                     // Swipe Right
+                     else if (deltaX > PBRSettings.SwipeThresholdX) {
+                        previousPage();
                      }
-                     // Swipe left
-                     if (deltaX < -PBRSettings.SwipeThresholdX) {
-                        turnPageLeft();
+                     // Swipe Left
+                     else if (deltaX < -PBRSettings.SwipeThresholdX) {
+                        nextPage();
                      }
                      if (MainActivity.getInstance().toolbarIsVisible()) {
                         Handler handler = new Handler();
@@ -137,6 +153,8 @@ public class BookViewFragment extends Fragment {
                      touchStartY = (int) event.getRawY();
                   }
                }
+            } else {
+               lastMultiTouchTime = System.currentTimeMillis();
             }
             return false;
          }
@@ -146,7 +164,7 @@ public class BookViewFragment extends Fragment {
          @Override
          public void onChanged(BookView bookView) {
             File page = bookView.getCurrentPage();
-            if(!pagePickerCreated && bookView.getPageCount() > 0){
+            if(currentBookView == null || !currentBookView.Name.equals(bookView.Name)){
                ArrayList<Integer> pageIndices = new ArrayList<>();
                int pageIndex = 0;
                for(String pageId : bookView.PageIds){
@@ -154,7 +172,6 @@ public class BookViewFragment extends Fragment {
                }
                adapter.setData(pageIndices);
                adapter.notifyDataSetChanged();
-               pagePickerCreated = true;
             }
             if(currentPage == null || !currentPage.getAbsoluteFile().equals(page.getAbsoluteFile())){
                pageListWrapper.setVisibility(View.GONE);
@@ -170,6 +187,7 @@ public class BookViewFragment extends Fragment {
             } else {
                currentPageImage.zoomTo(bookView.ZoomScale, false);
             }
+            currentBookView = bookView;
          }
       });
       bookViewModel.load(categoryName, bookName);
@@ -180,7 +198,7 @@ public class BookViewFragment extends Fragment {
       pageListWrapper.setVisibility(View.VISIBLE);
    }
 
-   private void turnPageLeft(){
+   private void nextPage(){
       if(bookViewModel.isLastPage()){
          Util.toast("Finished "+bookViewModel.Data.getValue().Name);
          MainActivity.getInstance().navigateUp();
@@ -189,7 +207,7 @@ public class BookViewFragment extends Fragment {
       }
    }
 
-   private void turnPageRight(){
+   private void previousPage(){
       if(bookViewModel.isFirstPage()){
          Util.toast("Leaving "+bookViewModel.Data.getValue().Name);
          MainActivity.getInstance().navigateUp();
