@@ -4,10 +4,10 @@ package com.simplepathstudios.pbr;
 import android.net.Uri;
 
 public class PBRSettings {
-    public static final String BuildDate = "July 21, 2023";
-    public static final String ClientVersion = "1.1.3";
+    public static final String BuildDate = "July 27, 2023";
+    public static final String ClientVersion = "1.1.4";
     public static boolean EnableDebugLog = false;
-    public static final Uri UpdatePBRUrl = Uri.parse("http://9914.us/software/android/picture-book-reader.apk");
+    public static final Uri UpdatePBRUrl = Uri.parse("http://9914.us:8091/software/android/picture-book-reader.apk");
     public static final boolean DebugResourceLeaks = false;
     public static Uri LibraryDirectory = null;
     public static final int SwipeThresholdX = 200;
