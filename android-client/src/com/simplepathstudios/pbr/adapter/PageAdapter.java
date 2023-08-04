@@ -26,8 +26,10 @@ import java.util.ArrayList;
 
 public class PageAdapter extends RecyclerView.Adapter<PageAdapter.ViewHolder> {
    private ArrayList<Integer> data;
-   public PageAdapter(){
+   private BookViewFragment fragment;
+   public PageAdapter(BookViewFragment fragment){
       this.data = null;
+      this.fragment = fragment;
    }
 
    public void setData(ArrayList<Integer> data){
@@ -68,6 +70,7 @@ public class PageAdapter extends RecyclerView.Adapter<PageAdapter.ViewHolder> {
 
       @Override
       public void onClick(View v) {
+         fragment.hidePagePicker();
          BookViewViewModel viewModel = new ViewModelProvider(MainActivity.getInstance()).get(BookViewViewModel.class);
          viewModel.gotoPage(pageNumber);
       }

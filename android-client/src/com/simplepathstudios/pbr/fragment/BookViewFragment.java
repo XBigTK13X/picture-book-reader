@@ -62,8 +62,6 @@ public class BookViewFragment extends Fragment {
    private LinearLayoutManager layoutManager;
    private BookView currentBookView;
 
-
-
    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
       categoryName = getArguments().getString("CategoryName");
       bookName = getArguments().getString("BookName");
@@ -79,7 +77,7 @@ public class BookViewFragment extends Fragment {
       pageListWrapper = view.findViewById(R.id.page_list_wrapper);
       listElement = view.findViewById(R.id.page_list);
       currentPageImage = view.findViewById(R.id.current_page_image);
-      adapter = new PageAdapter();
+      adapter = new PageAdapter(this);
       listElement.setAdapter(adapter);
       layoutManager = new GridLayoutManager(getActivity(), COLUMNS);
       listElement.setLayoutManager(layoutManager);
@@ -205,12 +203,6 @@ public class BookViewFragment extends Fragment {
             }
             // The page changed
             if (currentPage == null || !currentPage.getAbsoluteFile().equals(page.getAbsoluteFile())) {
-               if(pageListWrapper.getVisibility() == View.VISIBLE){
-                  pageListWrapper.setVisibility(View.GONE);
-               }
-               if(currentPageImage.getVisibility() != View.VISIBLE){
-                  currentPageImage.setVisibility(View.VISIBLE);
-               }
                Glide.with(currentPageImage)
                        .load(page.getAbsolutePath())
                        .listener(new RequestListener<Drawable>() {
@@ -247,9 +239,22 @@ public class BookViewFragment extends Fragment {
       currentPageImage.zoomTo(1.0f, false);
    }
 
-   private void showPagePicker(){
-      currentPageImage.setVisibility(View.GONE);
-      pageListWrapper.setVisibility(View.VISIBLE);
+   public void showPagePicker(){
+      if(currentPageImage.getVisibility() == View.VISIBLE){
+         currentPageImage.setVisibility(View.GONE);
+      }
+      if(pageListWrapper.getVisibility() == View.GONE){
+         pageListWrapper.setVisibility(View.VISIBLE);
+      }
+   }
+
+   public void hidePagePicker(){
+      if(currentPageImage.getVisibility() == View.GONE){
+         currentPageImage.setVisibility(View.VISIBLE);
+      }
+      if(pageListWrapper.getVisibility() == View.VISIBLE){
+         pageListWrapper.setVisibility(View.GONE);
+      }
    }
 
    private void nextPage(){
