@@ -52,7 +52,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
         holder.category = this.data.get(position);
         holder.label.setText(holder.category.Name+"\n("+ CentralCatalog.getInstance().getBooks(holder.category.Name).Books.size()+")");
         byte[] thumbBytes = CentralCatalog.getInstance().getCategoryThumbnail(holder.category.Name);
-        Glide.with(holder.layout).load(thumbBytes).into(holder.cover);
+        Glide.with(holder.layout).load(thumbBytes).fitCenter().into(holder.cover);
     }
 
     @Override

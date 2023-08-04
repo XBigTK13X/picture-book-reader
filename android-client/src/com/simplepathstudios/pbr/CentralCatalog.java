@@ -61,6 +61,7 @@ public class CentralCatalog {
 
    public Observable<Boolean> importLibrary(boolean cleanScan){
       if(cleanScan){
+         LoadingIndicator.setLoadingMessage("Cleaning up leftover folders");
          Util.clean("thumbnails/");
          Util.clean("extract-thumbnails/");
          Util.clean("extract-book/");
@@ -69,7 +70,7 @@ public class CentralCatalog {
       else {
          try {
             if (cachedCatalogFile.exists()) {
-               LoadingIndicator.setLoading(false);
+               LoadingIndicator.setLoadingMessage("Reading cached library");
                BufferedReader fileReader = new BufferedReader(new FileReader(cachedCatalogFile));
                Gson gson = new Gson();
                CentralCatalog cachedCatalog = gson.fromJson(fileReader, CentralCatalog.class);
@@ -78,6 +79,7 @@ public class CentralCatalog {
                bookLookup = cachedCatalog.bookLookup;
                bookList = cachedCatalog.bookList;
                bookThumbnailLookup = cachedCatalog.bookThumbnailLookup;
+               LoadingIndicator.setLoading(false);
                return Observable.fromCallable(()-> true);
             }
          }
@@ -86,6 +88,7 @@ public class CentralCatalog {
          }
       }
       DocumentFile libraryRoot = DocumentFile.fromTreeUri(MainActivity.getInstance(), PBRSettings.LibraryDirectory);
+      LoadingIndicator.setLoadingMessage("Starting a clean import");
       this.categoriesLookup = new HashMap<>();
       this.categoriesList = new ArrayList<>();
       this.bookLookup = new HashMap<>();
@@ -94,6 +97,7 @@ public class CentralCatalog {
       return Observable.fromCallable(()->{
          int bookIndex = 0;
          int bookCount = 0;
+         LoadingIndicator.setLoadingMessage("Indexing existing thumbnails");
          DocumentFile[] categories = libraryRoot.listFiles();
          // Top level is folders (categories)}
          for(DocumentFile category : categories){
@@ -118,7 +122,7 @@ public class CentralCatalog {
             DocumentFile[] books = category.listFiles();
             ArrayList<Book> parsedBooks = new ArrayList<Book>();
             for(DocumentFile bookFile : books){
-                 String loadingMessage = "(" + (++bookIndex) + "/" + bookCount + ") Generating thumbnail for\n[" + bookFile.getName() + "]";
+                 String loadingMessage = "(" + (++bookIndex) + "/" + bookCount + ") Processing details for\n[" + bookFile.getName() + "]";
                  LoadingIndicator.setLoadingMessage(loadingMessage);
                  Book book = new Book();
                  book.TreeUri = bookFile.getUri().toString();

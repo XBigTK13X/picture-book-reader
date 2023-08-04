@@ -42,7 +42,7 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.ViewHolder> {
    public void onBindViewHolder(BookAdapter.ViewHolder holder, int position) {
       holder.book = this.data.get(position);
       byte[] thumbBytes = CentralCatalog.getInstance().getBookThumbnail(holder.book.CategoryName, holder.book.Name);
-      Glide.with(MainActivity.getInstance()).load(thumbBytes).into(holder.image);
+      Glide.with(MainActivity.getInstance()).load(thumbBytes).fitCenter().into(holder.image);
    }
 
    @Override
