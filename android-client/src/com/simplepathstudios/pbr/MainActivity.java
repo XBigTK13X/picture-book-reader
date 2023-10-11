@@ -127,6 +127,9 @@ public class MainActivity extends AppCompatActivity {
             public void onChanged(SettingsViewModel.Settings settings) {
                 if(settings.LibraryDirectory == null){
                     Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
+                            | Intent.FLAG_GRANT_PREFIX_URI_PERMISSION);
                     startActivityForResult(intent, MainActivity.OPEN_LIBRARY_DIR_CODE);
                 }
             }

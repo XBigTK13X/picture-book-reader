@@ -1,5 +1,6 @@
 package com.simplepathstudios.pbr;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -88,6 +89,7 @@ public class CentralCatalog {
          }
       }
       DocumentFile libraryRoot = DocumentFile.fromTreeUri(MainActivity.getInstance(), PBRSettings.LibraryDirectory);
+      MainActivity.getInstance().getContentResolver().takePersistableUriPermission(PBRSettings.LibraryDirectory, Intent.FLAG_GRANT_READ_URI_PERMISSION);
       LoadingIndicator.setLoadingMessage("Starting a clean import");
       this.categoriesLookup = new HashMap<>();
       this.categoriesList = new ArrayList<>();
