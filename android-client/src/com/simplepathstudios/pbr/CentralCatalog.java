@@ -88,66 +88,73 @@ public class CentralCatalog {
             Util.error(TAG, t);
          }
       }
+      Util.log(TAG,"Attempting to read ["+PBRSettings.LibraryDirectory+"]");
       DocumentFile libraryRoot = DocumentFile.fromTreeUri(MainActivity.getInstance(), PBRSettings.LibraryDirectory);
-      MainActivity.getInstance().getContentResolver().takePersistableUriPermission(PBRSettings.LibraryDirectory, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+      try {
+         MainActivity.getInstance().getContentResolver().takePersistableUriPermission(PBRSettings.LibraryDirectory, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+      }
+      catch(Exception e){
+         Util.log(TAG, "Unable to import the library");
+         Util.error(TAG, e);
+      }
       LoadingIndicator.setLoadingMessage("Starting a clean import");
       this.categoriesLookup = new HashMap<>();
       this.categoriesList = new ArrayList<>();
       this.bookLookup = new HashMap<>();
       this.bookList = new ArrayList<>();
       this.bookThumbnailLookup = new HashMap<>();
-      return Observable.fromCallable(()->{
-         int bookIndex = 0;
-         int bookCount = 0;
-         LoadingIndicator.setLoadingMessage("Indexing existing thumbnails");
-         DocumentFile[] categories = libraryRoot.listFiles();
-         // Top level is folders (categories)}
-         for(DocumentFile category : categories){
-            if(category.getName().equals(".thumbnails")){
-               for(DocumentFile thumb : category.listFiles()){
-                  if(thumb.isFile()){
-                     bookThumbnailLookup.put(thumb.getName().replace(".jpg",""), thumb.getUri().toString());
-                  }
-               }
-            }
-            else {
-               // Next level is files (books)
-               for(DocumentFile book : category.listFiles()){
-                  bookCount++;
-               }
-            }
-         }
-         for(DocumentFile category : categories){
-            if(category.getName().equals(".thumbnails")){
-               continue;
-            }
-            DocumentFile[] books = category.listFiles();
-            ArrayList<Book> parsedBooks = new ArrayList<Book>();
-            for(DocumentFile bookFile : books){
-                 String loadingMessage = "(" + (++bookIndex) + "/" + bookCount + ") Processing details for\n[" + bookFile.getName() + "]";
-                 LoadingIndicator.setLoadingMessage(loadingMessage);
-                 Book book = new Book();
-                 book.TreeUri = bookFile.getUri().toString();
-                 book.Name = bookFile.getName();
-                 book.CategoryName = category.getName();
-                 book.SearchSlug = book.CategoryName.toLowerCase() + "-" + book.Name.toLowerCase();
-                 book.CompareSlug = book.Name.toLowerCase();
-                 book.ThumbnailUri = bookThumbnailLookup.get(book.Name.replace(".cbz", ""));
-                 parsedBooks.add(book);
-            };
-            CentralCatalog.getInstance().addCategory(category.getName(), parsedBooks);
-           }
-         cachedCatalogFile.getParentFile().mkdirs();
-         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-         FileOutputStream writeStream = new FileOutputStream(cachedCatalogFile);
-         BufferedWriter fileWriter = new BufferedWriter(new OutputStreamWriter(writeStream));
-         gson.toJson(this, CentralCatalog.class, fileWriter);
-         fileWriter.close();
-         Util.toast("Library import complete. Found " + bookCount + " books");
-         return true;
-      })
-        .subscribeOn(Schedulers.newThread())
-        .observeOn(AndroidSchedulers.mainThread());
+      return Observable.fromCallable(() -> {
+                 int bookIndex = 0;
+                 int bookCount = 0;
+                 LoadingIndicator.setLoadingMessage("Indexing existing thumbnails");
+                 DocumentFile[] categories = libraryRoot.listFiles();
+                 // Top level is folders (categories)}
+                 for (DocumentFile category : categories) {
+                    if (category.getName().equals(".thumbnails")) {
+                       for (DocumentFile thumb : category.listFiles()) {
+                          if (thumb.isFile()) {
+                             bookThumbnailLookup.put(thumb.getName().replace(".jpg", ""), thumb.getUri().toString());
+                          }
+                       }
+                    } else {
+                       // Next level is files (books)
+                       for (DocumentFile book : category.listFiles()) {
+                          bookCount++;
+                       }
+                    }
+                 }
+                 for (DocumentFile category : categories) {
+                    if (category.getName().equals(".thumbnails")) {
+                       continue;
+                    }
+                    DocumentFile[] books = category.listFiles();
+                    ArrayList<Book> parsedBooks = new ArrayList<Book>();
+                    for (DocumentFile bookFile : books) {
+                       String loadingMessage = "(" + (++bookIndex) + "/" + bookCount + ") Processing details for\n[" + bookFile.getName() + "]";
+                       LoadingIndicator.setLoadingMessage(loadingMessage);
+                       Book book = new Book();
+                       book.TreeUri = bookFile.getUri().toString();
+                       book.Name = bookFile.getName();
+                       book.CategoryName = category.getName();
+                       book.SearchSlug = book.CategoryName.toLowerCase() + "-" + book.Name.toLowerCase();
+                       book.CompareSlug = book.Name.toLowerCase();
+                       book.ThumbnailUri = bookThumbnailLookup.get(book.Name.replace(".cbz", ""));
+                       parsedBooks.add(book);
+                    }
+                    ;
+                    CentralCatalog.getInstance().addCategory(category.getName(), parsedBooks);
+                 }
+                 cachedCatalogFile.getParentFile().mkdirs();
+                 Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                 FileOutputStream writeStream = new FileOutputStream(cachedCatalogFile);
+                 BufferedWriter fileWriter = new BufferedWriter(new OutputStreamWriter(writeStream));
+                 gson.toJson(this, CentralCatalog.class, fileWriter);
+                 fileWriter.close();
+                 Util.toast("Library import complete. Found " + bookCount + " books");
+                 return true;
+              })
+              .subscribeOn(Schedulers.newThread())
+              .observeOn(AndroidSchedulers.mainThread());
    }
 
    public byte[] getBookThumbnail(String category, String book) {

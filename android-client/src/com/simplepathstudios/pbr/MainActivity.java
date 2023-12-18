@@ -96,6 +96,7 @@ public class MainActivity extends AppCompatActivity {
     public void onActivityResult(int requestCode, int resultCode,
                                  Intent resultData) {
         super.onActivityResult(requestCode, resultCode, resultData);
+        __instance = this;
         if (requestCode == OPEN_LIBRARY_DIR_CODE && resultCode == Activity.RESULT_OK) {
             if (resultData != null) {
                 Uri uri = resultData.getData();
@@ -127,9 +128,9 @@ public class MainActivity extends AppCompatActivity {
             public void onChanged(SettingsViewModel.Settings settings) {
                 if(settings.LibraryDirectory == null){
                     Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
-                            | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
-                            | Intent.FLAG_GRANT_PREFIX_URI_PERMISSION);
+                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+                    intent.addFlags(Intent.FLAG_GRANT_PREFIX_URI_PERMISSION);
                     startActivityForResult(intent, MainActivity.OPEN_LIBRARY_DIR_CODE);
                 }
             }
@@ -211,6 +212,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         Intent intent = getIntent();
         Util.log(TAG, "Resuming with intent " + intent.getAction());
+        __instance = this;
         Util.enableFullscreen();
     }
 
