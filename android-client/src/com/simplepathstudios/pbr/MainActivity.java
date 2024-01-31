@@ -92,6 +92,11 @@ public class MainActivity extends AppCompatActivity {
         return currentLocation.getLabel().equals(locationName);
     }
 
+    public void hideKeyboard(){
+        InputMethodManager inputManager = (InputMethodManager)(Util.getGlobalContext().getSystemService(Context.INPUT_METHOD_SERVICE));
+        inputManager.toggleSoftInput(0, 0);
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode,
                                  Intent resultData) {

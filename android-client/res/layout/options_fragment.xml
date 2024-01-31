@@ -10,6 +10,21 @@
         android:orientation="vertical"
         android:padding="20dp">
 
+        <TextView
+            android:id="@+id/parental_warning"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="What is X + Y?"
+            android:textColor="@android:color/white"
+            android:textSize="20sp" />
+
+        <EditText
+            android:id="@+id/parental_answer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"/>
+
         <Button
             android:id="@+id/download_update_button"
             android:layout_width="match_parent"
@@ -20,7 +35,9 @@
             android:id="@+id/version_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Picture Book Reader" />
+            android:text="Picture Book Reader"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"/>
 
         <Button
             android:id="@+id/clear_library_button"
@@ -31,7 +48,9 @@
         <TextView
             android:id="@+id/library_text"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"/>
 
         <Button
             android:id="@+id/rescan_library_button"
@@ -54,7 +73,9 @@
         <TextView
             android:id="@+id/debug_log_status"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"/>
 
 
     </LinearLayout>
