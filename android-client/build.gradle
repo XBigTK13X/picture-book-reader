@@ -4,7 +4,7 @@ buildscript {
         google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.1.4'
+        classpath 'com.android.tools.build:gradle:8.2.2'
     }
 }
 
@@ -51,10 +51,11 @@ dependencies {
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'net.lingala.zip4j:zip4j:2.11.5'
     implementation 'commons-io:commons-io:20030203.000550'
-    implementation 'com.github.bumptech.glide:glide:4.15.1'
-    implementation(platform('org.jetbrains.kotlin:kotlin-bom:1.8.0'))
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
+    implementation(platform('org.jetbrains.kotlin:kotlin-bom:1.9.22'))
     implementation 'io.reactivex.rxjava3:rxjava:3.1.8'
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.2'
     implementation 'com.otaliastudios:zoomlayout:1.9.0'
     implementation 'com.google.code.gson:gson:2.10.1'
+
 }

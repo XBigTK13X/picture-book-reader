@@ -1,7 +1,10 @@
 package com.simplepathstudios.pbr.fragment;
 
 import android.annotation.SuppressLint;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -11,6 +14,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.LinearLayout;
 import android.widget.ViewSwitcher;
 
@@ -38,6 +42,8 @@ import com.simplepathstudios.pbr.api.model.BookView;
 import com.simplepathstudios.pbr.viewmodel.BookViewViewModel;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -54,6 +60,8 @@ public class BookViewFragment extends Fragment {
    private long lastMultiTouchTime = -1;
    private long lastTouchTime = -1;
    private long doubleTapTime = -1;
+
+   private boolean imageLocked = false;
 
    private final int COLUMNS = 8;
    private LinearLayout pageListWrapper;
@@ -203,7 +211,7 @@ public class BookViewFragment extends Fragment {
             }
             // The page changed
             if (currentPage == null || !currentPage.getAbsoluteFile().equals(page.getAbsoluteFile())) {
-               Glide.with(currentPageImage)
+               /*Glide.with(currentPageImage)
                        .load(page.getAbsolutePath())
                        .listener(new RequestListener<Drawable>() {
                           @Override
@@ -219,10 +227,29 @@ public class BookViewFragment extends Fragment {
                              return false;
                           }
                        })
-                       .dontAnimate()
-                       .into(currentPageImage);
-               MainActivity.getInstance().setActionBarTitle(String.format("(%d / %d) %s", bookView.CurrentPageIndex + 1, bookView.getPageCount(), bookName));
-               currentPage = page;
+                       .into(currentPageImage);*/
+
+                  if(!imageLocked) {
+                     imageLocked = true;
+                     currentPageImage.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+                        @Override
+                        public boolean onPreDraw() {
+                           imageLocked = false;
+                           resetZoom();
+                           MainActivity.getInstance().setActionBarTitle(String.format("(%d / %d) %s", bookView.CurrentPageIndex + 1, bookView.getPageCount(), bookName));
+                           currentPage = page;
+                           currentPageImage.getViewTreeObserver().removeOnPreDrawListener(this);
+                           return false;
+                        }
+                     });
+                     try{
+                        final InputStream imageStream = MainActivity.getInstance().getContentResolver().openInputStream(Uri.parse(page.toURI().toString()));
+                        final Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
+                        currentPageImage.setImageBitmap(selectedImage);
+                     } catch(Exception e){
+                        Util.error(TAG, e);
+                     }
+                  }
             }
             currentBookView = bookView;
          }
