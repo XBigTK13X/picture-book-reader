@@ -25,22 +25,33 @@ import com.simplepathstudios.pbr.LoadingIndicator;
 import com.simplepathstudios.pbr.MainActivity;
 import com.simplepathstudios.pbr.R;
 import com.simplepathstudios.pbr.Util;
+import com.simplepathstudios.pbr.adapter.BookAdapter;
 import com.simplepathstudios.pbr.adapter.CategoryAdapter;
 import com.simplepathstudios.pbr.api.model.Book;
 import com.simplepathstudios.pbr.api.model.CategoryList;
 import com.simplepathstudios.pbr.viewmodel.CategoryListViewModel;
+import com.simplepathstudios.pbr.viewmodel.CategoryViewViewModel;
+import com.simplepathstudios.pbr.viewmodel.RandomBooksViewModel;
 import com.simplepathstudios.pbr.viewmodel.SettingsViewModel;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import io.reactivex.rxjava3.functions.Consumer;
 
 public class RandomFragment extends Fragment {
    private final String TAG = "RandomFragment";
 
+   private final int COLUMNS = 5;
+
    private ImageView coverImage;
    private Button rerollButton;
    private Book book;
+   private RecyclerView listElement;
+   private BookAdapter adapter;
+   private GridLayoutManager layoutManager;
+   private RandomBooksViewModel viewModel;
 
    @Override
    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
@@ -50,25 +61,24 @@ public class RandomFragment extends Fragment {
    @Override
    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
       super.onViewCreated(view, savedInstanceState);
-      coverImage = view.findViewById(R.id.cover_image);
-      coverImage.setOnClickListener(clickedView->{
-         if(book != null){
-            NavController navController = Navigation.findNavController(MainActivity.getInstance(), R.id.nav_host_fragment);
-            Bundle bundle = new Bundle();
-            bundle.putString("CategoryName", book.CategoryName);
-            bundle.putString("BookName", book.Name);
-            navController.navigate(R.id.book_view_fragment, bundle);
-         }
-      });
+      listElement = view.findViewById(R.id.random_book_list);
+      adapter = new BookAdapter();
+      listElement.setAdapter(adapter);
+      layoutManager = new GridLayoutManager(getActivity(), COLUMNS);
+      listElement.setLayoutManager(layoutManager);
       rerollButton = view.findViewById(R.id.reroll_button);
       rerollButton.setOnClickListener(clickedView -> {
-         LoadingIndicator.setLoading(true);
          CentralCatalog.getInstance().importLibrary(false).doOnComplete(()-> {
-            book = CentralCatalog.getInstance().getRandomBook();
-            byte[] thumbBytes = CentralCatalog.getInstance().getBookThumbnail(book.CategoryName, book.Name);
-            Glide.with(MainActivity.getInstance()).load(thumbBytes).into(coverImage);
-            LoadingIndicator.setLoading(false);
+            viewModel.addBook(CentralCatalog.getInstance().getRandomBook());
          }).subscribe();
+      });
+      viewModel = new ViewModelProvider(MainActivity.getInstance()).get(RandomBooksViewModel.class);
+      viewModel.Data.observe(getViewLifecycleOwner(), new Observer<ArrayList<Book>>() {
+         @Override
+         public void onChanged(ArrayList<Book> books) {
+            adapter.setData(books);
+            adapter.notifyDataSetChanged();
+         }
       });
    }
 }

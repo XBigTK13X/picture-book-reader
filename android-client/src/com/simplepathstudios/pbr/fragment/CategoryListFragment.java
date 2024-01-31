@@ -47,7 +47,7 @@ public class CategoryListFragment extends Fragment {
         listElement.setAdapter(adapter);
         layoutManager = new GridLayoutManager(getActivity(), COLUMNS);
         listElement.setLayoutManager(layoutManager);
-        viewModel = new ViewModelProvider(this).get(CategoryListViewModel.class);
+        viewModel = new ViewModelProvider(MainActivity.getInstance()).get(CategoryListViewModel.class);
         viewModel.Data.observe(getViewLifecycleOwner(), new Observer<CategoryList>() {
             @Override
             public void onChanged(CategoryList categoryList) {
