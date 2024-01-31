@@ -51,7 +51,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.ViewHo
     public void onBindViewHolder(CategoryAdapter.ViewHolder holder, int position) {
         holder.category = this.data.get(position);
         holder.label.setText(holder.category.Name+"\n("+ CentralCatalog.getInstance().getBooks(holder.category.Name).Books.size()+")");
-        byte[] thumbBytes = CentralCatalog.getInstance().getCategoryThumbnail(holder.category.Name);
+        byte[] thumbBytes = CentralCatalog.getInstance().getCategoryThumbnail(holder.category.Name, holder.category.ThumbnailIndex);
         Glide.with(holder.layout).load(thumbBytes).fitCenter().into(holder.cover);
     }
 

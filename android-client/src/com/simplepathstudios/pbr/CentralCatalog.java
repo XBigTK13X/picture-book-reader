@@ -80,6 +80,10 @@ public class CentralCatalog {
                bookLookup = cachedCatalog.bookLookup;
                bookList = cachedCatalog.bookList;
                bookThumbnailLookup = cachedCatalog.bookThumbnailLookup;
+               for(BookCategory category : categoriesList){
+                  CategoryView categoryView = getBooks(category.Name);
+                  category.ThumbnailIndex = new Random().nextInt(categoryView.Books.size());
+               }
                LoadingIndicator.setLoading(false);
                return Observable.fromCallable(()-> true);
             }
@@ -168,9 +172,9 @@ public class CentralCatalog {
       return null;
    }
 
-   public byte[] getCategoryThumbnail(String category){
+   public byte[] getCategoryThumbnail(String category, Integer thumbnailIndex){
       ArrayList<Book> books = getBooks(category).Books;
-      Book firstBook = books.get(new Random().nextInt(books.size()));
+      Book firstBook = books.get(thumbnailIndex);
       return getBookThumbnail(category, firstBook.Name);
    }
 
@@ -190,6 +194,7 @@ public class CentralCatalog {
          bookList.addAll(books);
          BookCategory category = new BookCategory();
          category.Name = name;
+         category.ThumbnailIndex = new Random().nextInt(books.size());
          categoriesList.add(category);
          for(Book book : books){
             bookLookup.put(getBookKey(name, book.Name), book);
