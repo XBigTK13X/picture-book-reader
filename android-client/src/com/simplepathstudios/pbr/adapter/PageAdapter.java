@@ -1,38 +1,30 @@
 package com.simplepathstudios.pbr.adapter;
 
-import android.graphics.Bitmap;
-import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.lifecycle.ViewModelProvider;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.simplepathstudios.pbr.MainActivity;
-import com.simplepathstudios.pbr.CentralCatalog;
 import com.simplepathstudios.pbr.R;
-import com.simplepathstudios.pbr.api.model.Book;
+import com.simplepathstudios.pbr.api.model.PageListItem;
 import com.simplepathstudios.pbr.fragment.BookViewFragment;
 import com.simplepathstudios.pbr.viewmodel.BookViewViewModel;
 
-import java.io.File;
 import java.util.ArrayList;
 
 public class PageAdapter extends RecyclerView.Adapter<PageAdapter.ViewHolder> {
-   private ArrayList<Integer> data;
+   private ArrayList<PageListItem> data;
    private BookViewFragment fragment;
    public PageAdapter(BookViewFragment fragment){
       this.data = null;
       this.fragment = fragment;
    }
 
-   public void setData(ArrayList<Integer> data){
+   public void setData(ArrayList<PageListItem> data){
       this.data = data;
    }
 
@@ -45,8 +37,24 @@ public class PageAdapter extends RecyclerView.Adapter<PageAdapter.ViewHolder> {
 
    @Override
    public void onBindViewHolder(PageAdapter.ViewHolder holder, int position) {
-      holder.pageNumber = this.data.get(position);
-      holder.label.setText(""+(holder.pageNumber + 1));
+      holder.page = this.data.get(position);
+      if(holder.page.Index == 0){
+         holder.label.setText(""+(holder.page.Index + 1));
+      }
+      else if (holder.page.Index == this.data.size() - 1){
+         int lastPage = ((this.data.size() - 2) * 2) + 2;
+         holder.label.setText(""+(lastPage));
+      }
+      else {
+         holder.label.setText(""+(holder.page.Index * 2)+"             "+(holder.page.Index * 2 + 1));
+      }
+      TextView textView = holder.itemView.findViewById(R.id.text);
+      if(holder.page.IsCurrentPage){
+         textView.setBackgroundResource(R.color.primary);
+      }
+      else{
+         textView.setBackgroundResource(R.color.primary_dark);
+      }
    }
 
    @Override
@@ -60,7 +68,7 @@ public class PageAdapter extends RecyclerView.Adapter<PageAdapter.ViewHolder> {
    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
       public final TextView label;
-      public Integer pageNumber;
+      public PageListItem page;
 
       public ViewHolder(TextView view) {
          super(view);
@@ -72,7 +80,7 @@ public class PageAdapter extends RecyclerView.Adapter<PageAdapter.ViewHolder> {
       public void onClick(View v) {
          fragment.hidePagePicker();
          BookViewViewModel viewModel = new ViewModelProvider(MainActivity.getInstance()).get(BookViewViewModel.class);
-         viewModel.gotoPage(pageNumber);
+         viewModel.gotoPage(page.Index);
       }
    }
 }

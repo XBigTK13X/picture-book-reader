@@ -39,6 +39,7 @@ import com.simplepathstudios.pbr.R;
 import com.simplepathstudios.pbr.Util;
 import com.simplepathstudios.pbr.adapter.PageAdapter;
 import com.simplepathstudios.pbr.api.model.BookView;
+import com.simplepathstudios.pbr.api.model.PageListItem;
 import com.simplepathstudios.pbr.viewmodel.BookViewViewModel;
 
 import java.io.File;
@@ -199,18 +200,21 @@ public class BookViewFragment extends Fragment {
          @Override
          public void onChanged(BookView bookView) {
             File page = bookView.getCurrentPage();
-            // The book is different from the last time the fragment was built
-            if (currentBookView == null || !currentBookView.Name.equals(bookView.Name)) {
-               ArrayList<Integer> pageIndices = new ArrayList<>();
+            boolean bookChanged = currentBookView == null || !currentBookView.Name.equals(bookView.Name);
+            boolean pageChanged = currentPage == null || !currentPage.getAbsoluteFile().equals(page.getAbsoluteFile());
+            if (bookChanged || pageChanged) {
+               ArrayList<PageListItem> pages = new ArrayList<>();
                int pageIndex = 0;
                for (String pageId : bookView.PageIds) {
-                  pageIndices.add(pageIndex++);
+                  PageListItem item = new PageListItem();
+                  item.Index = pageIndex++;
+                  item.IsCurrentPage = item.Index == bookView.CurrentPageIndex;
+                  pages.add(item);
                }
-               adapter.setData(pageIndices);
+               adapter.setData(pages);
                adapter.notifyDataSetChanged();
             }
-            // The page changed
-            if (currentPage == null || !currentPage.getAbsoluteFile().equals(page.getAbsoluteFile())) {
+            if (pageChanged) {
                /*Glide.with(currentPageImage)
                        .load(page.getAbsolutePath())
                        .listener(new RequestListener<Drawable>() {
