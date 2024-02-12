@@ -211,28 +211,22 @@ public class BookViewFragment extends Fragment {
                   item.IsCurrentPage = item.Index == bookView.CurrentPageIndex;
                   pages.add(item);
                }
+               int currentLeftPage = 0;
+               int lastPage = ((bookView.getPageCount() - 2) * 2) + 2;
+               if(bookView.CurrentPageIndex == 0){
+                  currentLeftPage = 1;
+               }
+               else if (bookView.CurrentPageIndex == bookView.getPageCount() - 1){
+                  currentLeftPage = lastPage;
+               }
+               else {
+                  currentLeftPage = bookView.CurrentPageIndex * 2;
+               }
+               MainActivity.getInstance().setActionBarTitle(String.format("(%d / %d) %s", currentLeftPage, lastPage, bookName));
                adapter.setData(pages);
                adapter.notifyDataSetChanged();
             }
             if (pageChanged) {
-               /*Glide.with(currentPageImage)
-                       .load(page.getAbsolutePath())
-                       .listener(new RequestListener<Drawable>() {
-                          @Override
-                          public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                             return false;
-                          }
-
-                          @Override
-                          public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                             new Handler(Looper.getMainLooper()).post(()->{
-                                resetZoom();
-                             });
-                             return false;
-                          }
-                       })
-                       .into(currentPageImage);*/
-
                   if(!imageLocked) {
                      imageLocked = true;
                      currentPageImage.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
@@ -240,7 +234,6 @@ public class BookViewFragment extends Fragment {
                         public boolean onPreDraw() {
                            imageLocked = false;
                            resetZoom();
-                           MainActivity.getInstance().setActionBarTitle(String.format("(%d / %d) %s", bookView.CurrentPageIndex + 1, bookView.getPageCount(), bookName));
                            currentPage = page;
                            currentPageImage.getViewTreeObserver().removeOnPreDrawListener(this);
                            return false;
