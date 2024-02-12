@@ -2,12 +2,13 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="175dp"
-    android:layout_height="230dp"
+    android:layout_height="280dp"
     android:layout_marginTop="2dp"
     android:layout_marginStart="2dp"
     android:layout_marginEnd="2dp"
     android:layout_marginBottom="35dp"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@color/poster_background">
 
     <ImageView
         android:id="@+id/category_cover"
@@ -15,21 +16,21 @@
         android:layout_height="175dp"
         android:layout_gravity="center"
         android:adjustViewBounds="false"
-        android:background="@drawable/image_background"
+        android:background="@color/poster_background"
         android:cropToPadding="false"
-        android:padding="1dp"
-        android:layout_margin="2dp"
+        android:padding="5dp"
+        android:layout_margin="5dp"
         android:scaleType="fitCenter"
         android:contentDescription="Placeholder"/>
 
     <TextView
         android:id="@+id/category_name"
-        android:layout_width="match_parent"
-        android:layout_height="55dp"
+        android:layout_width="175dp"
+        android:layout_height="100dp"
         android:layout_gravity="center"
         android:gravity="center"
-        android:paddingStart="5dp"
-        android:paddingEnd="5dp"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
         android:singleLine="false"
         android:text="Placeholder to see button alignment what the"
         android:textColor="@android:color/white"
