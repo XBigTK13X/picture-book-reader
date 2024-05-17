@@ -6,12 +6,13 @@ import android.net.Uri;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 
 public class BookView {
    public String TreeUi;
    public String Name;
-   public HashMap<String, File> Pages;
+   public HashMap<String, String> Pages;
    public ArrayList<String> PageIds;
    public HashMap<String, String> Info;
    public int CurrentPageIndex = 0;
@@ -22,23 +23,23 @@ public class BookView {
       PageIds = new ArrayList<>();
    }
 
-   public File gotoPage(int pageIndex){
+   public String gotoPage(int pageIndex){
       CurrentPageIndex = pageIndex;
       return Pages.get(PageIds.get(pageIndex));
    }
 
-   public File getCurrentPage(){
+   public String getCurrentPage(){
       return gotoPage(CurrentPageIndex);
    }
 
-   public File nextPage(){
+   public String nextPage(){
       if(CurrentPageIndex >= PageIds.size() - 1){
          return null;
       }
       return gotoPage(CurrentPageIndex + 1);
    }
 
-   public File previousPage(){
+   public String previousPage(){
       if(CurrentPageIndex < 0){
          return null;
       }
@@ -47,5 +48,14 @@ public class BookView {
 
    public int getPageCount(){
       return PageIds.size();
+   }
+
+   public void sortPages(){
+      this.PageIds.sort(new Comparator<String>() {
+         @Override
+         public int compare(String o1, String o2) {
+            return o1.toLowerCase().compareTo(o2.toLowerCase());
+         }
+      });
    }
 }

@@ -9,4 +9,6 @@ public class Book {
    public String SearchSlug;
    public String CompareSlug;
    public String ThumbnailUri;
+
+   public BookView View;
 }

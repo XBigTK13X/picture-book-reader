@@ -57,15 +57,13 @@ public class CentralCatalog {
       this.bookList = new ArrayList<>();
       this.bookLookup = new HashMap<>();
       this.bookThumbnailLookup = new HashMap<>();
-      this.cachedCatalogFile = new File(Paths.get(MainActivity.getInstance().getFilesDir().getAbsolutePath(),"data/","catalog.json").toString());
+      String filesRoot = MainActivity.getInstance().getFilesDir().getAbsolutePath();
+      this.cachedCatalogFile = new File(Paths.get(filesRoot,"data/","catalog.json").toString());
    }
 
    public Observable<Boolean> importLibrary(boolean cleanScan){
       if(cleanScan){
          LoadingIndicator.setLoadingMessage("Cleaning up leftover folders");
-         Util.clean("thumbnails/");
-         Util.clean("extract-thumbnails/");
-         Util.clean("extract-book/");
          Util.clean("data/");
       }
       else {
@@ -110,7 +108,7 @@ public class CentralCatalog {
       return Observable.fromCallable(() -> {
                  int bookIndex = 0;
                  int bookCount = 0;
-                 LoadingIndicator.setLoadingMessage("Indexing existing thumbnails");
+                 LoadingIndicator.setLoadingMessage("Indexing all thumbnails");
                  DocumentFile[] categories = libraryRoot.listFiles();
                  // Top level is folders (categories)}
                  for (DocumentFile category : categories) {
@@ -121,6 +119,9 @@ public class CentralCatalog {
                           }
                        }
                     } else {
+                       if(category.getName().charAt(0) == '.'){
+                          continue;
+                       }
                        // Next level is files (books)
                        for (DocumentFile book : category.listFiles()) {
                           bookCount++;
@@ -131,10 +132,13 @@ public class CentralCatalog {
                     if (category.getName().equals(".thumbnails")) {
                        continue;
                     }
+                    if(category.getName().charAt(0) == '.'){
+                       continue;
+                    }
                     DocumentFile[] books = category.listFiles();
                     ArrayList<Book> parsedBooks = new ArrayList<Book>();
                     for (DocumentFile bookFile : books) {
-                       String loadingMessage = "(" + (++bookIndex) + "/" + bookCount + ") Processing details for\n[" + bookFile.getName() + "]";
+                       String loadingMessage = "(" + (++bookIndex) + "/" + bookCount + ") Indexing pages for\n[" + bookFile.getName() + "]";
                        LoadingIndicator.setLoadingMessage(loadingMessage);
                        Book book = new Book();
                        book.TreeUri = bookFile.getUri().toString();
@@ -143,9 +147,26 @@ public class CentralCatalog {
                        book.SearchSlug = book.CategoryName.toLowerCase() + "-" + book.Name.toLowerCase();
                        book.CompareSlug = book.Name.toLowerCase();
                        book.ThumbnailUri = bookThumbnailLookup.get(book.Name.replace(".cbz", ""));
+                       book.View = new BookView();
+                       book.View.Name = book.Name;
+                       DocumentFile[] pages = bookFile.listFiles();
+                       for(DocumentFile pageFile: pages){
+                          if(pageFile.isDirectory()){
+                             continue;
+                          }
+                          String entryName = pageFile.getName();
+                          if (entryName.endsWith(".xml") || entryName.endsWith(".txt")) {
+                             //TODO Parse text files for metadata
+                             book.View.Info.put(entryName, null);
+                          } else {
+                             book.View.Pages.put(entryName, pageFile.getUri().toString());
+                             book.View.PageIds.add(entryName);
+                          }
+                       }
+                       book.View.sortPages();
                        parsedBooks.add(book);
                     }
-                    ;
+
                     CentralCatalog.getInstance().addCategory(category.getName(), parsedBooks);
                  }
                  cachedCatalogFile.getParentFile().mkdirs();
@@ -183,7 +204,7 @@ public class CentralCatalog {
    }
 
    public void addCategory(String name, ArrayList<Book> books){
-      if(books.size() > 0){
+      if(!books.isEmpty()){
          books.sort(new Comparator<Book>() {
             @Override
             public int compare(Book o1, Book o2) {
@@ -224,41 +245,8 @@ public class CentralCatalog {
       return books.get(new Random().nextInt(books.size()));
    }
 
-   public Observable<BookView> getBook(String categoryName, String bookName){
-      return Observable.fromCallable(()-> {
-         Book book = bookLookup.get(getBookKey(categoryName, bookName));
-         Util.clean("extract-book/");
-         ArrayList<File> extractedFiles = Util.extractArchive(book.TreeUri, "extract-book/", true);
-         BookView bookView = new BookView();
-         bookView.Name = book.Name;
-         bookView.TreeUi = book.TreeUri;
-         try {
-            for (File file : extractedFiles) {
-               if (file.isDirectory()) {
-                  continue;
-               }
-               String entryName = file.getName();
-               if (entryName.endsWith(".xml") || entryName.endsWith(".txt")) {
-                  //TODO Parse text files for metadata
-                  bookView.Info.put(entryName, null);
-               } else {
-                  bookView.Pages.put(entryName, file);
-                  bookView.PageIds.add(entryName);
-               }
-            }
-            bookView.PageIds.sort(new Comparator<String>() {
-               @Override
-               public int compare(String o1, String o2) {
-                  return o1.toLowerCase().compareTo(o2.toLowerCase());
-               }
-            });
-         } catch (Exception e) {
-            Util.error(TAG, e);
-         }
-         return bookView;
-      })
-        .subscribeOn(Schedulers.newThread())
-        .observeOn(AndroidSchedulers.mainThread());
+   public Book getBook(String categoryName, String bookName){
+      return bookLookup.get(getBookKey(categoryName, bookName));
    }
 
    public SearchResults search(String needle){

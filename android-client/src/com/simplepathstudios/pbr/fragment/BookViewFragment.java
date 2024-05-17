@@ -54,7 +54,7 @@ public class BookViewFragment extends Fragment {
    private BookViewViewModel bookViewModel;
    private String categoryName;
    private String bookName;
-   private File currentPage;
+   private Uri currentPage;
    private int touchStartX = 0;
    private int touchStartY = 0;
    private boolean multiTouchHappening = false;
@@ -199,9 +199,9 @@ public class BookViewFragment extends Fragment {
       bookViewModel.Data.observe(getViewLifecycleOwner(), new Observer<BookView>() {
          @Override
          public void onChanged(BookView bookView) {
-            File page = bookView.getCurrentPage();
+            Uri page = Uri.parse(bookView.getCurrentPage());
             boolean bookChanged = currentBookView == null || !currentBookView.Name.equals(bookView.Name);
-            boolean pageChanged = currentPage == null || !currentPage.getAbsoluteFile().equals(page.getAbsoluteFile());
+            boolean pageChanged = currentPage == null || !currentPage.toString().equals(page.toString());
             if (bookChanged || pageChanged) {
                ArrayList<PageListItem> pages = new ArrayList<>();
                int pageIndex = 0;
@@ -240,7 +240,7 @@ public class BookViewFragment extends Fragment {
                         }
                      });
                      try{
-                        final InputStream imageStream = MainActivity.getInstance().getContentResolver().openInputStream(Uri.parse(page.toURI().toString()));
+                        final InputStream imageStream = MainActivity.getInstance().getContentResolver().openInputStream(page);
                         final Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
                         currentPageImage.setImageBitmap(selectedImage);
                      } catch(Exception e){

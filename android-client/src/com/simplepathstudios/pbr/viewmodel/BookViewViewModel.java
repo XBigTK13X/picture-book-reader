@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel;
 
 import com.simplepathstudios.pbr.LoadingIndicator;
 import com.simplepathstudios.pbr.CentralCatalog;
+import com.simplepathstudios.pbr.api.model.Book;
 import com.simplepathstudios.pbr.api.model.BookView;
 
 public class BookViewViewModel extends ViewModel {
@@ -15,10 +16,9 @@ public class BookViewViewModel extends ViewModel {
 
    public void load(String categoryName, String bookName){
       LoadingIndicator.setLoading(true);
-      CentralCatalog.getInstance().getBook(categoryName, bookName).doOnNext((bookView)->{
-         Data.setValue(bookView);
-         LoadingIndicator.setLoading(false);
-      }).subscribe();
+      Book book = CentralCatalog.getInstance().getBook(categoryName, bookName);
+      Data.setValue(book.View);
+      LoadingIndicator.setLoading(false);
    }
 
    public void nextPage(){
