@@ -8,7 +8,6 @@ public class Book {
    public String TreeUri;
    public String SearchSlug;
    public String CompareSlug;
-   public String ThumbnailUri;
 
    public BookView View;
 }

@@ -50,7 +50,7 @@ public class CentralCatalog {
    private ArrayList<Book> bookList;
    private File cachedCatalogFile;
    private HashMap<String, String> bookThumbnailLookup;
-
+   private String thumbnailReport;
    private CentralCatalog(){
       this.categoriesLookup = new HashMap<>();
       this.categoriesList = new ArrayList<>();
@@ -146,7 +146,6 @@ public class CentralCatalog {
                        book.CategoryName = category.getName();
                        book.SearchSlug = book.CategoryName.toLowerCase() + "-" + book.Name.toLowerCase();
                        book.CompareSlug = book.Name.toLowerCase();
-                       book.ThumbnailUri = bookThumbnailLookup.get(book.Name.replace(".cbz", ""));
                        book.View = new BookView();
                        book.View.Name = book.Name;
                        DocumentFile[] pages = bookFile.listFiles();
@@ -264,5 +263,24 @@ public class CentralCatalog {
          }
       });
       return results;
+   }
+
+   public String getThumbnailReport(){
+      if(thumbnailReport != null){
+         return thumbnailReport;
+      }
+      String report = "Books missing thumbnails:";
+      boolean allMatched = true;
+      for(Book book:bookList){
+         if(!bookThumbnailLookup.containsKey(book.Name)){
+            allMatched = false;
+            report += "\n\t[" + book.CategoryName + "] " + book.Name;
+         }
+      }
+      if(allMatched){
+         report += "\n\tAll books matched to thumbnails.";
+      }
+      thumbnailReport = report;
+      return report;
    }
 }

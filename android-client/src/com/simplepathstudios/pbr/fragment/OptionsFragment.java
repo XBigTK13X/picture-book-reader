@@ -40,6 +40,7 @@ public class OptionsFragment extends Fragment {
     private TextView parentalUnlockWarning;
     private EditText parentalUnlockAnswer;
     private TextView libraryText;
+    private TextView thumbnailStatus;
 
     private boolean parentalLock;
     private int parentalCorrectAnswer;
@@ -63,7 +64,6 @@ public class OptionsFragment extends Fragment {
         questionX = new Random().nextInt(20) + 15;
         questionY = parentalCorrectAnswer - questionX;
         parentalUnlockWarning.setText("Enter the answer below to unlock these options. " + questionX + " + "+questionY+" = ?");
-
 
         parentalUnlockAnswer.addTextChangedListener(new TextWatcher() {
             @Override
@@ -169,6 +169,9 @@ public class OptionsFragment extends Fragment {
                 settingsViewModel.setDebugLog(!PBRSettings.EnableDebugLog);
             }
         });
+
+        thumbnailStatus = view.findViewById(R.id.thumbnail_status);
+        thumbnailStatus.setText(CentralCatalog.getInstance().getThumbnailReport());
 
         debugLogToggle.setEnabled(false);
         enableFullScreenButton.setEnabled(false);
