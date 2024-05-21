@@ -206,6 +206,9 @@ public class BookViewFragment extends Fragment {
             Uri page = Uri.parse(bookView.getCurrentPage());
             boolean bookChanged = currentBookView == null || !currentBookView.Name.equals(bookView.Name);
             boolean pageChanged = currentPage == null || !currentPage.toString().equals(page.toString());
+            if(bookChanged){
+               bookView.gotoPage(0);
+            }
             if (bookChanged || pageChanged) {
                ArrayList<PageListItem> pages = new ArrayList<>();
                int pageIndex = 0;
