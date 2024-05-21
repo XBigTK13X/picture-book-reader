@@ -2,7 +2,7 @@
 
 if [ -z $1 ]; then
   echo "First argument of version string is required, current version is below"
-  cat /media/kretst/LINDATA/dev/github/picture-book-reader/android-client/src/com/simplepathstudios/pbr/PBRSettings.java | grep ClientVersion
+  cat ./android-client/src/com/simplepathstudios/pbr/PBRSettings.java | grep ClientVersion
   exit 1
 fi
 

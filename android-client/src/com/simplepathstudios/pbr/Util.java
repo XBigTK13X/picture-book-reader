@@ -1,8 +1,12 @@
 package com.simplepathstudios.pbr;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Window;
 import android.widget.Toast;
@@ -165,4 +169,65 @@ public class Util {
             }
         }
     }
+
+    public static int calculateInSampleSize(
+            BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        // Raw height and width of image
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if (height > reqHeight || width > reqWidth) {
+
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while ((halfHeight / inSampleSize) >= reqHeight
+                    && (halfWidth / inSampleSize) >= reqWidth) {
+                inSampleSize *= 2;
+            }
+        }
+
+        return inSampleSize;
+    }
+
+    private static Integer maxImageHeight;
+    private static Integer maxImageWidth;
+
+    public static Bitmap subsample(Uri resourceUri) {
+        if(maxImageHeight == null){
+            DisplayMetrics displayMetrics = new DisplayMetrics();
+            MainActivity.getInstance().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+            maxImageHeight = displayMetrics.heightPixels;
+            maxImageWidth = displayMetrics.widthPixels;
+        }
+
+        try {
+            final BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inJustDecodeBounds = true;
+            final InputStream measureStream = MainActivity.getInstance().getContentResolver().openInputStream(resourceUri);
+            BitmapFactory.decodeStream(measureStream, null, options);
+            options.inSampleSize = calculateInSampleSize(options, maxImageWidth, maxImageHeight);
+            options.inJustDecodeBounds = false;
+            final InputStream imageStream = MainActivity.getInstance().getContentResolver().openInputStream(resourceUri);
+            return BitmapFactory.decodeStream(imageStream, null, options);
+        }
+        catch(Exception e){
+            Util.error(TAG,e);
+            return null;
+        }
+    }
+
+    public static Bitmap fullImage(Uri imagePath){
+        try {
+            final InputStream imageStream = MainActivity.getInstance().getContentResolver().openInputStream(imagePath);
+            return BitmapFactory.decodeStream(imageStream);
+        }
+        catch(Exception e){
+            return null;
+        }
+    }
+
 }

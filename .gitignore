@@ -1,3 +1,4 @@
+release/
 *.hprof
 .idea/
 pbr.json

@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -18,6 +19,7 @@ import android.view.ViewTreeObserver;
 import android.widget.LinearLayout;
 import android.widget.ViewSwitcher;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
@@ -32,6 +34,8 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
+import com.bumptech.glide.request.transition.DrawableCrossFadeFactory;
+import com.bumptech.glide.request.transition.Transition;
 import com.otaliastudios.zoom.ZoomImageView;
 import com.simplepathstudios.pbr.MainActivity;
 import com.simplepathstudios.pbr.PBRSettings;
@@ -213,13 +217,11 @@ public class BookViewFragment extends Fragment {
                }
                int currentLeftPage = 0;
                int lastPage = ((bookView.getPageCount() - 2) * 2) + 2;
-               if(bookView.CurrentPageIndex == 0){
+               if (bookView.CurrentPageIndex == 0) {
                   currentLeftPage = 1;
-               }
-               else if (bookView.CurrentPageIndex == bookView.getPageCount() - 1){
+               } else if (bookView.CurrentPageIndex == bookView.getPageCount() - 1) {
                   currentLeftPage = lastPage;
-               }
-               else {
+               } else {
                   currentLeftPage = bookView.CurrentPageIndex * 2;
                }
                MainActivity.getInstance().setActionBarTitle(String.format("(%d / %d) %s", currentLeftPage, lastPage, bookName));
@@ -227,31 +229,39 @@ public class BookViewFragment extends Fragment {
                adapter.notifyDataSetChanged();
             }
             if (pageChanged) {
-                  if(!imageLocked) {
-                     imageLocked = true;
-                     currentPageImage.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-                        @Override
-                        public boolean onPreDraw() {
-                           imageLocked = false;
-                           resetZoom();
-                           currentPage = page;
-                           currentPageImage.getViewTreeObserver().removeOnPreDrawListener(this);
-                           return false;
-                        }
-                     });
-                     try{
-                        final InputStream imageStream = MainActivity.getInstance().getContentResolver().openInputStream(page);
-                        final Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
-                        currentPageImage.setImageBitmap(selectedImage);
-                     } catch(Exception e){
-                        Util.error(TAG, e);
+               if (!imageLocked) {
+                  imageLocked = true;
+                  currentPageImage.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+                     @Override
+                     public boolean onPreDraw() {
+                        imageLocked = false;
+                        resetZoom();
+                        currentPage = page;
+                        currentPageImage.getViewTreeObserver().removeOnPreDrawListener(this);
+                        return false;
+                     }
+                  });
+                  try {
+                     Bitmap bitmap = Util.fullImage(page);
+
+                     currentPageImage.setImageBitmap(bitmap);
+                  }
+                  catch(Exception fullFail){
+                     try {
+                        Bitmap subsampled = Util.subsample(page);
+                        currentPageImage.setImageBitmap(subsampled);
+                     }
+                     catch(Exception subsampleFail){
+                        Util.log(TAG, "Unable to load full and subsample image. Page "+bookView.CurrentPageIndex);
+                        Util.error(TAG,subsampleFail);
+                        Util.toast("Unable to load page.");
                      }
                   }
+               }
             }
             currentBookView = bookView;
          }
       });
-
       bookViewModel.load(categoryName, bookName);
    }
 

@@ -4,8 +4,8 @@ package com.simplepathstudios.pbr;
 import android.net.Uri;
 
 public class PBRSettings {
-    public static final String BuildDate = "May 17, 2024";
-    public static final String ClientVersion = "1.2.3";
+    public static final String BuildDate = "May 21, 2024";
+    public static final String ClientVersion = "1.2.4";
     public static boolean EnableDebugLog = false;
     public static final Uri UpdatePBRUrl = Uri.parse("http://9914.us:8091/software/android/picture-book-reader.apk");
     public static final boolean DebugResourceLeaks = false;
