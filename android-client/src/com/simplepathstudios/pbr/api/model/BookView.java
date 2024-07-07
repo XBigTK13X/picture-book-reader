@@ -4,12 +4,15 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 
+import com.simplepathstudios.pbr.Util;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 
 public class BookView {
+   public static String TAG = "BookView";
    public String TreeUi;
    public String Name;
    public HashMap<String, String> Pages;
@@ -25,6 +28,9 @@ public class BookView {
 
    public String gotoPage(int pageIndex){
       CurrentPageIndex = pageIndex;
+      if(Pages.size() <= CurrentPageIndex){
+         return null;
+      }
       return Pages.get(PageIds.get(pageIndex));
    }
 

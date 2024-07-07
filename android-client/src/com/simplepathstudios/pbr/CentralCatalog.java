@@ -149,6 +149,9 @@ public class CentralCatalog {
                        book.View = new BookView();
                        book.View.Name = book.Name;
                        DocumentFile[] pages = bookFile.listFiles();
+                       if(pages.length == 1 && pages[0].isDirectory()){
+                          pages = pages[0].listFiles();
+                       }
                        for(DocumentFile pageFile: pages){
                           if(pageFile.isDirectory()){
                              continue;

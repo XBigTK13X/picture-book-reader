@@ -203,7 +203,12 @@ public class BookViewFragment extends Fragment {
       bookViewModel.Data.observe(getViewLifecycleOwner(), new Observer<BookView>() {
          @Override
          public void onChanged(BookView bookView) {
-            Uri page = Uri.parse(bookView.getCurrentPage());
+            String foundPage = bookView.getCurrentPage();
+            if(foundPage == null){
+               currentPage = null;
+               return;
+            }
+            Uri page = Uri.parse(foundPage);
             boolean bookChanged = currentBookView == null || !currentBookView.Name.equals(bookView.Name);
             boolean pageChanged = currentPage == null || !currentPage.toString().equals(page.toString());
             if(bookChanged){
